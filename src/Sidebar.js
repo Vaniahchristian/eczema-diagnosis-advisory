@@ -1,21 +1,30 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { FaImage, FaDiagnoses, FaStethoscope, FaBook } from 'react-icons/fa'; // Importing icons
 
 const Sidebar = () => {
   return (
     <div className="sidebar">
       <ul>
         <li>
-          <Link to="/image-upload">Image Upload</Link>
+          <Link to="/image-upload">
+            <FaImage /> Image Upload
+          </Link>
         </li>
         <li>
-          <Link to="/diagnosis-results">Diagnosis Results</Link>
+          <Link to="/diagnosis-results">
+            <FaDiagnoses /> Diagnosis Results
+          </Link>
         </li>
         <li>
-          <Link to="/treatment-advice">Treatment Advice</Link>
+          <Link to="/treatment-advice">
+            <FaStethoscope /> Treatment Advice
+          </Link>
         </li>
         <li>
-          <Link to="/education-content">Education Content</Link>
+          <Link to="/education-content">
+            <FaBook /> Education Content
+          </Link>
         </li>
       </ul>
     </div>

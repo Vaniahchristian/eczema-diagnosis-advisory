@@ -28,13 +28,7 @@ button:hover {
   height: 100vh;
 }
 
-.sidebar {
-  width: 250px;
-  background-color: #007bff;
-  padding: 20px;
-  color: white;
-}
-
+/* Sidebar.css */
 .sidebar ul {
   list-style-type: none;
   padding: 0;
@@ -45,14 +39,21 @@ button:hover {
 }
 
 .sidebar a {
+  display: flex;
+  align-items: center;
   color: white;
   text-decoration: none;
   font-size: 18px;
 }
 
+.sidebar a svg {
+  margin-right: 10px; /* Adds space between icon and text */
+}
+
 .sidebar a:hover {
   text-decoration: underline;
 }
+
 
 .content {
   flex-grow: 1;

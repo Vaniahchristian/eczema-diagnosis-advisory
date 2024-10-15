@@ -3,7 +3,7 @@ import React, { useContext } from "react";
 import { Link, useLocation } from "react-router-dom";
 import SidebarContext from "../contexts/SidebarContext";
 
-const SidebarItem = ({ icon, label, to, alert }) => {
+const SidebarItem = React.memo(({ icon, label, to, alert }) => {
   const { expanded } = useContext(SidebarContext);
   const location = useLocation();
   const isActive = location.pathname === to;
@@ -14,8 +14,8 @@ const SidebarItem = ({ icon, label, to, alert }) => {
         to={to}
         className={`flex items-center p-2 my-1 rounded-md transition-colors ${
           isActive
-            ? "bg-indigo-100 text-indigo-700"
-            : "text-gray-600 hover:bg-indigo-50"
+            ? "bg-indigo-100 dark:bg-indigo-700 text-indigo-700 dark:text-white"
+            : "text-gray-600 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-600 hover:text-indigo-600 dark:hover:text-white"
         }`}
       >
         <span className="text-lg">{icon}</span>
@@ -33,12 +33,12 @@ const SidebarItem = ({ icon, label, to, alert }) => {
 
       {/* Tooltip for collapsed sidebar */}
       {!expanded && (
-        <span className="absolute left-full ml-2 whitespace-nowrap bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <span className="absolute left-full ml-2 whitespace-nowrap bg-gray-800 dark:bg-gray-600 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           {label}
         </span>
       )}
     </li>
   );
-};
+});
 
 export default SidebarItem;

@@ -1,6 +1,6 @@
 // src/components/Sidebar.jsx
 import React, { useState } from "react";
-import { FaChevronLeft, FaChevronRight, FaUserCircle } from "react-icons/fa";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import SidebarContext from "../contexts/SidebarContext";
 import SidebarItem from "./SidebarItem";
 
@@ -12,7 +12,7 @@ const Sidebar = ({ children, user }) => {
   return (
     <SidebarContext.Provider value={{ expanded, toggleSidebar }}>
       <aside
-        className={`h-screen bg-white border-r shadow-sm flex flex-col transition-all duration-300 ${
+        className={`bg-white dark:bg-gray-800 border-r shadow-sm flex flex-col transition-all duration-300 ${
           expanded ? "w-64" : "w-20"
         }`}
       >
@@ -27,7 +27,7 @@ const Sidebar = ({ children, user }) => {
           />
           <button
             onClick={toggleSidebar}
-            className="p-2 rounded-md bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="p-2 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
           >
             {expanded ? <FaChevronLeft /> : <FaChevronRight />}
@@ -49,7 +49,8 @@ const Sidebar = ({ children, user }) => {
             />
           ) : (
             <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-              <FaUserCircle className="text-gray-600" />
+              {/* Default User Icon */}
+              <FaChevronLeft className="text-gray-600" />
             </div>
           )}
           <div
@@ -58,8 +59,8 @@ const Sidebar = ({ children, user }) => {
             }`}
           >
             <div>
-              <h4 className="font-semibold text-gray-800">{user.name}</h4>
-              <span className="text-sm text-gray-600">{user.email}</span>
+              <h4 className="font-semibold text-gray-800 dark:text-gray-200">{user.name}</h4>
+              <span className="text-sm text-gray-600 dark:text-gray-400">{user.email}</span>
             </div>
           </div>
         </div>

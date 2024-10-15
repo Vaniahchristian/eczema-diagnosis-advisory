@@ -5,8 +5,8 @@ import ImageUpload from './components/ImageUpload';
 import DiagnosisResults from './components/DiagnosisResults';
 import TreatmentAdvice from './components/TreatmentAdvice';
 import EducationContent from './components/EducationContent';
-import Header from './Header';
-import Footer from './Footer';
+import Header from './components/Header';
+import Footer from './components/Footer';
 
 const App = () => {
   return (

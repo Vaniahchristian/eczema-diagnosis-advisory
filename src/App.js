@@ -5,13 +5,14 @@ import ImageUpload from './components/ImageUpload';
 import DiagnosisResults from './components/DiagnosisResults';
 import TreatmentAdvice from './components/TreatmentAdvice';
 import EducationContent from './components/EducationContent';
-import './App.css';
-
+import Header from './Header';
+import Footer from './Footer';
 
 const App = () => {
   return (
     <Router>
       <div className="App">
+        <Header />
         <Routes>
           <Route path="/" element={<Dashboard />}>
             <Route path="image-upload" element={<ImageUpload />} />
@@ -20,6 +21,7 @@ const App = () => {
             <Route path="education-content" element={<EducationContent />} />
           </Route>
         </Routes>
+        <Footer />
       </div>
     </Router>
   );

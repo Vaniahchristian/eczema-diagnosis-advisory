@@ -7,6 +7,8 @@ import TreatmentAdvice from './components/TreatmentAdvice';
 import EducationContent from './components/EducationContent';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import './App.css';
+
 
 const App = () => {
   return (

@@ -1,27 +1,11 @@
 import React from 'react';
 
-
 const Footer = () => {
   return (
-    <footer className="footer">
-      <div className="footer-content">
-        <div className="footer-logo">
-          <h2>Eczema Diagnosis</h2>
-        </div>
-        <div className="footer-links">
-          <a href="#privacy">Privacy Policy</a>
-          <a href="#terms">Terms of Service</a>
-          <a href="#support">Support</a>
-        </div>
-        <div className="footer-social">
-          <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">Facebook</a>
-          <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">Twitter</a>
-          <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">Instagram</a>
-        </div>
+    <footer className="bg-gray-100 shadow-inner">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 text-center text-sm text-gray-600">
+        © 2024 Eczema Advisory. All rights reserved.
       </div>
-      <p className="footer-copyright">
-        © {new Date().getFullYear()} Eczema Diagnosis. All rights reserved.
-      </p>
     </footer>
   );
 };

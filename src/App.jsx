@@ -13,6 +13,10 @@ import TreatmentAdvice from "./pages/TreatmentAdvice";
 import EducationContent from "./pages/EducationContent";
 import NotFound from "./pages/NotFound"; // Optional: For 404
 
+// Import Header and Footer
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+
 const App = () => {
   const [diagnosis, setDiagnosis] = useState(null);
   const [confidence, setConfidence] = useState(null);
@@ -61,70 +65,82 @@ const App = () => {
 
   return (
     <Router>
-      <div className="flex">
-        {/* Sidebar */}
-        <Sidebar user={user}>
-          <SidebarItem
-            icon={<FaImage />}
-            label="Image Upload"
-            to="/image-upload"
-          />
-          <SidebarItem
-            icon={<FaDiagnoses />}
-            label="Diagnosis Results"
-            to="/diagnosis-results"
-            alert={diagnosis ? true : false}
-          />
-          <SidebarItem
-            icon={<FaStethoscope />}
-            label="Treatment Advice"
-            to="/treatment-advice"
-            alert={treatment ? true : false}
-          />
-          <SidebarItem
-            icon={<FaBook />}
-            label="Education Content"
-            to="/education-content"
-          />
-        </Sidebar>
+      <div className="flex flex-col min-h-screen">
+        {/* Header */}
+        <Header />
 
-        {/* Main Content */}
-        <main className="flex-1 bg-gray-100 min-h-screen p-6">
-          {loading && (
-            <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white p-4 rounded-md shadow-lg">
-                <p className="text-blue-500">Processing image...</p>
+        <div className="flex flex-1">
+          {/* Sidebar */}
+          <Sidebar user={user}>
+            <SidebarItem
+              icon={<FaImage />}
+              label="Image Upload"
+              to="/image-upload"
+            />
+            <SidebarItem
+              icon={<FaDiagnoses />}
+              label="Diagnosis Results"
+              to="/diagnosis-results"
+              alert={diagnosis ? true : false}
+            />
+            <SidebarItem
+              icon={<FaStethoscope />}
+              label="Treatment Advice"
+              to="/treatment-advice"
+              alert={treatment ? true : false}
+            />
+            <SidebarItem
+              icon={<FaBook />}
+              label="Education Content"
+              to="/education-content"
+            />
+          </Sidebar>
+
+          {/* Main Content */}
+          <main className="flex-1 bg-gray-100 p-6">
+            {loading && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white p-6 rounded-lg shadow-lg flex items-center space-x-2">
+                  <svg className="animate-spin h-6 w-6 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                  </svg>
+                  <span className="text-indigo-600">Processing image...</span>
+                </div>
               </div>
-            </div>
-          )}
-          {error && (
-            <div className="fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg z-50">
-              {error}
-            </div>
-          )}
-          <Routes>
-            <Route
-              path="/image-upload"
-              element={<ImageUpload onImageUpload={handleImageUpload} />}
-            />
-            <Route
-              path="/diagnosis-results"
-              element={
-                <DiagnosisResults
-                  result={diagnosis}
-                  confidence={confidence}
-                />
-              }
-            />
-            <Route
-              path="/treatment-advice"
-              element={<TreatmentAdvice treatment={treatment} />}
-            />
-            <Route path="/education-content" element={<EducationContent />} />
-            <Route path="/" element={<Navigate to="/image-upload" replace />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </main>
+            )}
+            {error && (
+              <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-md">
+                {error}
+              </div>
+            )}
+            <Routes>
+              <Route
+                path="/image-upload"
+                element={<ImageUpload onImageUpload={handleImageUpload} />}
+              />
+              <Route
+                path="/diagnosis-results"
+                element={
+                  <DiagnosisResults
+                    result={diagnosis}
+                    confidence={confidence}
+                  />
+                }
+              />
+              <Route
+                path="/treatment-advice"
+                element={<TreatmentAdvice treatment={treatment} />}
+              />
+              <Route path="/education-content" element={<EducationContent />} />
+              <Route path="/" element={<Navigate to="/image-upload" replace />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </main>
+        </div>
+
+        {/* Footer */}
+        <Footer />
       </div>
     </Router>
   );

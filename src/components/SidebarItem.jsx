@@ -1,22 +1,22 @@
 // src/components/SidebarItem.jsx
 import React, { useContext } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import SidebarContext from "../contexts/SidebarContext";
 
 const SidebarItem = React.memo(({ icon, label, to, alert }) => {
   const { expanded } = useContext(SidebarContext);
-  const location = useLocation();
-  const isActive = location.pathname === to;
 
   return (
     <li className="relative group">
-      <Link
+      <NavLink
         to={to}
-        className={`flex items-center p-2 my-1 rounded-md transition-colors ${
-          isActive
-            ? "bg-indigo-100 dark:bg-indigo-700 text-indigo-700 dark:text-white"
-            : "text-gray-600 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-600 hover:text-indigo-600 dark:hover:text-white"
-        }`}
+        className={({ isActive }) =>
+          `flex items-center p-2 my-1 rounded-md transition-colors ${
+            isActive
+              ? "bg-indigo-100 dark:bg-indigo-700 text-indigo-700 dark:text-white"
+              : "text-gray-600 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-600 hover:text-indigo-600 dark:hover:text-white"
+          }`
+        }
       >
         <span className="text-lg">{icon}</span>
         <span
@@ -29,7 +29,7 @@ const SidebarItem = React.memo(({ icon, label, to, alert }) => {
         {alert && expanded && (
           <span className="ml-auto w-2 h-2 bg-red-500 rounded-full"></span>
         )}
-      </Link>
+      </NavLink>
 
       {/* Tooltip for collapsed sidebar */}
       {!expanded && (

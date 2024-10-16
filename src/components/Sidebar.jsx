@@ -1,23 +1,40 @@
 // src/components/Sidebar.jsx
 import React, { useState } from "react";
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { 
+  FaChevronLeft, 
+  FaChevronRight, 
+  FaUserCircle, 
+  FaTachometerAlt, 
+  FaImage, 
+  FaClipboardCheck, 
+  FaStethoscope, 
+  FaBook 
+} from "react-icons/fa";
 import SidebarContext from "../contexts/SidebarContext";
 import SidebarItem from "./SidebarItem";
 
-const Sidebar = ({ children, user }) => {
+const Sidebar = () => {
   const [expanded, setExpanded] = useState(true);
 
   const toggleSidebar = () => setExpanded((prev) => !prev);
 
+  // Placeholder user data
+  const user = {
+    name: "John Doe",
+    email: "johndoe@gmail.com",
+    avatar: "", // Optional: URL to user's avatar
+  };
+
   return (
     <SidebarContext.Provider value={{ expanded, toggleSidebar }}>
       <aside
-        className={`bg-white dark:bg-gray-800 border-r shadow-sm flex flex-col transition-all duration-300 ${
+        className={`h-screen bg-white dark:bg-gray-800 border-r shadow-sm flex flex-col transition-all duration-300 ${
           expanded ? "w-64" : "w-20"
         }`}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4">
+          {/* Logo */}
           <img
             src="https://img.logoipsum.com/243.svg"
             alt="Company Logo"
@@ -25,6 +42,7 @@ const Sidebar = ({ children, user }) => {
               expanded ? "w-32" : "w-0"
             }`}
           />
+          {/* Toggle Button */}
           <button
             onClick={toggleSidebar}
             className="p-2 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -36,7 +54,44 @@ const Sidebar = ({ children, user }) => {
 
         {/* Navigation Items */}
         <nav className="flex-1 px-2">
-          <ul className="mt-4">{children}</ul>
+          <ul className="mt-4">
+            {/* Dashboard */}
+            <SidebarItem
+              icon={<FaTachometerAlt />}
+              label="Dashboard"
+              to="/dashboard"
+            />
+
+            {/* Image Upload */}
+            <SidebarItem
+              icon={<FaImage />}
+              label="Image Upload"
+              to="/image-upload"
+            />
+
+            {/* Diagnosis Results */}
+            <SidebarItem
+              icon={<FaClipboardCheck />}
+              label="Diagnosis Results"
+              to="/diagnosis-results"
+              alert={true} // Example: Show alert if needed
+            />
+
+            {/* Treatment Advice */}
+            <SidebarItem
+              icon={<FaStethoscope />}
+              label="Treatment Advice"
+              to="/treatment-advice"
+              alert={true} // Example: Show alert if needed
+            />
+
+            {/* Education Content */}
+            <SidebarItem
+              icon={<FaBook />}
+              label="Education Content"
+              to="/education-content"
+            />
+          </ul>
         </nav>
 
         {/* User Info Footer */}
@@ -49,8 +104,7 @@ const Sidebar = ({ children, user }) => {
             />
           ) : (
             <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-              {/* Default User Icon */}
-              <FaChevronLeft className="text-gray-600" />
+              <FaUserCircle className="text-gray-600" />
             </div>
           )}
           <div

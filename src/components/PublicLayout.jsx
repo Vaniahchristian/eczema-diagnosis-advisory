@@ -8,7 +8,7 @@ const PublicLayout = () => {
 
   if (isAuthenticated) {
     // If authenticated, redirect to the main system
-    return <Navigate to="/image-upload" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return (

@@ -6,7 +6,8 @@ import {
   FaUserCircle, 
   FaTachometerAlt, 
   FaImage, 
-  FaClipboardCheck, 
+  FaClipboardCheck,
+  FaInfoCircle, 
   FaStethoscope, 
   FaBook 
 } from "react-icons/fa";
@@ -90,6 +91,13 @@ const Sidebar = () => {
               icon={<FaBook />}
               label="Education Content"
               to="/education-content"
+            />
+            
+            {/* About Us */}
+            <SidebarItem
+              icon={<FaInfoCircle />}
+              label="About Us"
+              to="/about"
             />
           </ul>
         </nav>

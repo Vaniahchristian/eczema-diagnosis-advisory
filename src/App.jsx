@@ -14,6 +14,7 @@ import ImageUpload from "./pages/ImageUpload";
 import DiagnosisResults from "./pages/DiagnosisResults";
 import TreatmentAdvice from "./pages/TreatmentAdvice";
 import EducationContent from "./pages/EducationContent";
+import AboutUs from "./pages/AboutUs"; // Import AboutUs
 import LoginSignUp from "./pages/LoginSignUp";
 import NotFound from "./pages/NotFound";
 
@@ -25,7 +26,6 @@ const App = () => {
           {/* Public Routes */}
           <Route element={<PublicLayout />}>
             <Route path="/login" element={<LoginSignUp />} />
-            {/* Redirect root to login */}
             <Route path="/" element={<Navigate to="/login" replace />} />
           </Route>
 
@@ -43,6 +43,7 @@ const App = () => {
             <Route path="/diagnosis-results" element={<DiagnosisResults />} />
             <Route path="/treatment-advice" element={<TreatmentAdvice />} />
             <Route path="/education-content" element={<EducationContent />} />
+            <Route path="/about" element={<AboutUs />} /> {/* Add AboutUs Route */}
             {/* Add more protected routes here */}
           </Route>
 

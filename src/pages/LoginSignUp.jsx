@@ -29,12 +29,12 @@ const LoginSignUp = () => {
       // Implement your login logic here (e.g., API call)
       // For demonstration, we'll assume login is always successful
       login();
-      navigate('/image-upload'); // Redirect to a protected page
+      navigate('/dashboard'); // Redirect to a protected page
     } else {
       // Implement your sign-up logic here (e.g., API call)
       // For demonstration, we'll assume sign-up is always successful
       login();
-      navigate('/image-upload'); // Redirect to a protected page
+      navigate('/dashboard'); // Redirect to a protected page
     }
   };
 

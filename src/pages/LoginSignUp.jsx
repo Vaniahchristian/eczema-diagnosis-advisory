@@ -35,13 +35,13 @@ const LoginSignUp = () => {
     try {
       let response;
       if (isLogin) {
-        response = await fetch('http://localhost:5000/api/login', {
+        response = await fetch('https://eczema-diagnosis-advisory.onrender.com/api/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: formData.email, password: formData.password }),
         });
       } else {
-        response = await fetch('http://localhost:5000/api/signup', {
+        response = await fetch('https://eczema-diagnosis-advisory.onrender.com/api/signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData),

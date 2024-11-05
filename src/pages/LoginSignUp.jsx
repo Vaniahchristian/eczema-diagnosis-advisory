@@ -1,20 +1,21 @@
-// src/pages/LoginSignUp.jsx
 import React, { useState, useContext } from 'react';
 import { FaUser, FaLock, FaEnvelope } from 'react-icons/fa';
 import { AuthContext } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const LoginSignUp = () => {
-  const [isLogin, setIsLogin] = useState(true); // Toggle between Login and Sign-Up
+  const [isLogin, setIsLogin] = useState(true);
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  // Form state
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
   });
+
+  const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState(''); // State for success message
 
   // Handle input changes
   const handleChange = (e) => {
@@ -22,22 +23,55 @@ const LoginSignUp = () => {
   };
 
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+  
+    if (!formData.email || !formData.password || (!isLogin && !formData.name)) {
+      setError('Please fill in all required fields');
+      return;
+    }
+  
+    try {
+      let response;
+      if (isLogin) {
+        response = await fetch('http://localhost:5000/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: formData.email, password: formData.password }),
+        });
+      } else {
+        response = await fetch('http://localhost:5000/api/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+      }
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(data.message || 'Something went wrong');
+      }
+  
+      if (isLogin) {
+        login();
+        setSuccessMessage('Successfully logged in!');
+        login(data.user); // Pass the user profile data to the login function
+        navigate('/dashboard');
+      } else {
+        setSuccessMessage('Account created successfully!');
+        navigate('/login');
+      }
 
-    if (isLogin) {
-      // Implement your login logic here (e.g., API call)
-      // For demonstration, we'll assume login is always successful
-      login();
-      navigate('/dashboard'); // Redirect to a protected page
-    } else {
-      // Implement your sign-up logic here (e.g., API call)
-      // For demonstration, we'll assume sign-up is always successful
-      login();
-      navigate('/dashboard'); // Redirect to a protected page
+      // Clear success message after a few seconds
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      setError(err.message);
     }
   };
 
+  // Toggle between Login and Signup
   const toggleMode = () => {
     setIsLogin(!isLogin);
     setFormData({
@@ -45,17 +79,25 @@ const LoginSignUp = () => {
       email: '',
       password: '',
     });
+    setError('');
   };
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-cover bg-center bg-[url('/public/mum.jpg')]">
-      {/* Overlay */}
       <div className="absolute inset-0 bg-black opacity-50"></div>
 
-
-      {/* Form Container */}
       <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 max-w-md w-full z-10">
-        {/* Toggle Buttons */}
+        {successMessage && (
+          <p className="mb-4 text-green-500 text-center text-sm">
+            {successMessage}
+          </p>
+        )}
+        {error && (
+          <p className="mb-4 text-red-500 text-center text-sm">
+            {error}
+          </p>
+        )}
+
         <div className="flex justify-center mb-6">
           <button
             onClick={() => setIsLogin(true)}
@@ -75,9 +117,7 @@ const LoginSignUp = () => {
           </button>
         </div>
 
-        {/* Login/Sign-Up Form */}
         <form onSubmit={handleSubmit}>
-          {/* Full Name - Only for Sign-Up */}
           {!isLogin && (
             <div className="mb-4">
               <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="name">
@@ -99,7 +139,6 @@ const LoginSignUp = () => {
             </div>
           )}
 
-          {/* Email */}
           <div className="mb-4">
             <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="email">
               Email
@@ -119,7 +158,6 @@ const LoginSignUp = () => {
             </div>
           </div>
 
-          {/* Password */}
           <div className="mb-6">
             <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="password">
               Password
@@ -139,7 +177,6 @@ const LoginSignUp = () => {
             </div>
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -148,7 +185,6 @@ const LoginSignUp = () => {
           </button>
         </form>
 
-        {/* Alternate Option */}
         <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-300">
           {isLogin ? "Don't have an account?" : "Already have an account?"}{' '}
           <button onClick={toggleMode} className="text-indigo-600 hover:text-indigo-800 dark:hover:text-indigo-400 font-medium">

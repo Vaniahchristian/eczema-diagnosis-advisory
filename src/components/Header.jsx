@@ -2,7 +2,7 @@
 import React, { useContext } from 'react';
 import { FaUserCircle } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
-import { AuthContext } from '../contexts/AuthContext'; // Ensure correct import path
+import { AuthContext } from '../contexts/AuthContext';
 
 const Header = () => {
   const { isAuthenticated, logout } = useContext(AuthContext);
@@ -48,7 +48,9 @@ const Header = () => {
               >
                 Logout
               </button>
-              <FaUserCircle className="text-gray-600 w-7 h-7 hidden md:block" />
+              <Link to="/profile">
+                <FaUserCircle className="text-gray-600 w-7 h-7 cursor-pointer hover:text-blue-500" />
+              </Link>
             </>
           ) : (
             <Link to="/login">
@@ -62,7 +64,6 @@ const Header = () => {
         {/* Mobile Menu Button */}
         <div className="md:hidden flex items-center">
           <button className="text-gray-600 hover:text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300">
-            {/* Mobile Menu Icon */}
             <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>

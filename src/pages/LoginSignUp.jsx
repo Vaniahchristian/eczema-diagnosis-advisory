@@ -83,7 +83,7 @@ const LoginSignUp = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-cover bg-center bg-[url('/public/mum.jpg')]">
+    <div className="min-h-screen w-full flex items-center justify-center bg-cover bg-center bg-[url('/public/eczema1.jpg')]">
       <div className="absolute inset-0 bg-black opacity-50"></div>
 
       <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 max-w-md w-full z-10">

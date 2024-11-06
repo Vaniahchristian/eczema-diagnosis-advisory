@@ -15,7 +15,16 @@ const LoginSignUp = () => {
   });
 
   const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState(''); // State for success message
+  const [successMessage, setSuccessMessage] = useState('');
+
+  // Header specific to this page
+  const Header = () => (
+    <header className="w-full bg-transparent py-8 text-white text-center">
+      
+      
+      <h1 className='text-2xl font-extrabold'>ECZEMA DIAGNOSIS AND ADVISORY SYSTEM</h1>
+    </header>
+  );
 
   // Handle input changes
   const handleChange = (e) => {
@@ -26,12 +35,12 @@ const LoginSignUp = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-  
+
     if (!formData.email || !formData.password || (!isLogin && !formData.name)) {
       setError('Please fill in all required fields');
       return;
     }
-  
+
     try {
       let response;
       if (isLogin) {
@@ -47,24 +56,22 @@ const LoginSignUp = () => {
           body: JSON.stringify(formData),
         });
       }
-  
+
       const data = await response.json();
-  
+
       if (!response.ok) {
         throw new Error(data.message || 'Something went wrong');
       }
-  
+
       if (isLogin) {
-        login();
+        login(data.user);
         setSuccessMessage('Successfully logged in!');
-        login(data.user); // Pass the user profile data to the login function
         navigate('/dashboard');
       } else {
         setSuccessMessage('Account created successfully!');
         navigate('/login');
       }
 
-      // Clear success message after a few seconds
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
       setError(err.message);
@@ -83,10 +90,10 @@ const LoginSignUp = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-cover bg-center bg-[url('/public/eczema1.jpg')]">
-      <div className="absolute inset-0 bg-black opacity-50"></div>
+    <div className="min-h-screen w-full flex flex-col items-center bg-cover bg-center bg-[url('/public/eczema1.jpg')]">
+      <Header />
 
-      <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 max-w-md w-full z-10">
+      <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 max-w-md w-full mt-8 z-10">
         {successMessage && (
           <p className="mb-4 text-green-500 text-center text-sm">
             {successMessage}

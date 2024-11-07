@@ -34,19 +34,13 @@ const Sidebar = () => {
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4">
+        <div className="flex items-center justify-between p-1">
           {/* Logo */}
-          <img
-            src="https://img.logoipsum.com/243.svg"
-            alt="Company Logo"
-            className={`transition-all duration-300 ${
-              expanded ? "w-32" : "w-0"
-            }`}
-          />
+          
           {/* Toggle Button */}
           <button
             onClick={toggleSidebar}
-            className="p-2 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="p-2 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-300"
             aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
           >
             {expanded ? <FaChevronLeft /> : <FaChevronRight />}
@@ -75,7 +69,7 @@ const Sidebar = () => {
               icon={<FaClipboardCheck />}
               label="Diagnosis Results"
               to="/diagnosis-results"
-              alert={true} // Example: Show alert if needed
+             // alert={true} // Example: Show alert if needed
             />
 
             {/* Treatment Advice */}
@@ -83,7 +77,15 @@ const Sidebar = () => {
               icon={<FaStethoscope />}
               label="Treatment Advice"
               to="/treatment-advice"
-              alert={true} // Example: Show alert if needed
+              //alert={true} // Example: Show alert if needed
+            />
+
+            {/* Treatment Advice */}
+            <SidebarItem
+              icon={<FaStethoscope />}
+              label="Consult a Doctor"
+              to="/doctor"
+              //alert={true} // Example: Show alert if needed
             />
 
             {/* Education Content */}

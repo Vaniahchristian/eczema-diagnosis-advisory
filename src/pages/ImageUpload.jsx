@@ -37,7 +37,7 @@ const ImageUpload = ({ onImageUpload }) => {
         type="file"
         accept="image/*"
         onChange={handleImageChange}
-        className="w-full mb-4 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-500 file:text-white hover:file:bg-indigo-600 dark:file:bg-indigo-700 dark:hover:file:bg-indigo-600"
+        className="w-full mb-4 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-teal-500 file:text-white hover:file:bg-teal-600 dark:file:bg-teal-700 dark:hover:file:bg-teal-600"
         aria-label="Upload Image"
       />
       {previewUrl && (

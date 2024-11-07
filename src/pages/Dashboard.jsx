@@ -47,7 +47,7 @@ const Dashboard = () => {
   return (
     <div className="p-6 space-y-6">
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg p-6 shadow-lg">
+      <div className="bg-gradient-to-r from-teal-500 to-purple-500 text-white rounded-lg p-6 shadow-lg">
         <h1 className="text-3xl font-bold">Welcome Back, John!</h1>
         <p className="mt-2">Here’s your dashboard overview.</p>
       </div>

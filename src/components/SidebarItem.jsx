@@ -13,8 +13,8 @@ const SidebarItem = React.memo(({ icon, label, to, alert }) => {
         className={({ isActive }) =>
           `flex items-center p-2 my-1 rounded-md transition-colors ${
             isActive
-              ? "bg-indigo-100 dark:bg-indigo-700 text-indigo-700 dark:text-white"
-              : "text-gray-600 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-600 hover:text-indigo-600 dark:hover:text-white"
+              ? "bg-indigo-100 dark:bg-teal-700 text-teal-700 dark:text-white"
+              : "text-gray-600 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-teal-600 hover:text-teal-600 dark:hover:text-white"
           }`
         }
       >

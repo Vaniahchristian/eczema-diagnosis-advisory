@@ -17,6 +17,10 @@ import AboutUs from "./pages/AboutUs";
 import LoginSignUp from "./pages/LoginSignUp";
 import NotFound from "./pages/NotFound";
 import Profile from './pages/Profile';
+import ConsultDoctor from './pages/ConsultDoctor';
+import FAQ from './pages/FAQ';
+import Notifications from './pages/Notifications';
+
 
 const App = () => {
   return (
@@ -44,6 +48,9 @@ const App = () => {
             <Route path="/education-content" element={<EducationContent />} />
             <Route path="/about" element={<AboutUs />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/doctor" element={<ConsultDoctor />} />
+            <Route path="/faq" element={< FAQ />} />
+            <Route path="/notifications" element={< Notifications />} />
           </Route>
 
           {/* Catch-All Route */}

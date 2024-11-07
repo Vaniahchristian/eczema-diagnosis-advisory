@@ -3,7 +3,7 @@ import React, { createContext, useState, useEffect } from 'react';
 // Create the AuthContext with default values
 export const AuthContext = createContext({
   isAuthenticated: false,
-  user: null,  // Add user data here
+  user: null,
   login: () => {},
   logout: () => {},
 });
@@ -11,32 +11,48 @@ export const AuthContext = createContext({
 // Create a provider component
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);  // New state for user profile
+  const [user, setUser] = useState(null);
 
-  // On component mount, check localStorage for auth status and user profile
+  // Safe JSON parsing helper function
+  const safeParseJSON = (value) => {
+    try {
+      return JSON.parse(value);
+    } catch (error) {
+      console.error("Error parsing JSON from localStorage:", error);
+      return null;
+    }
+  };
+
+  // Check if 'isAuthenticated' exists; if not, set it to false
   useEffect(() => {
+    if (localStorage.getItem('isAuthenticated') === null) {
+      localStorage.setItem('isAuthenticated', JSON.stringify(false));
+    }
+
+    // Load auth state from localStorage
     const storedAuth = localStorage.getItem('isAuthenticated');
     const storedUser = localStorage.getItem('user');
+
     if (storedAuth === 'true') {
       setIsAuthenticated(true);
-      setUser(JSON.parse(storedUser));  // Parse and set user data if it exists
+      setUser(safeParseJSON(storedUser));
     }
   }, []);
 
-  // Function to handle login, now accepting user profile data
+  // Login function to set authentication and user data
   const login = (userData) => {
     setIsAuthenticated(true);
     setUser(userData);
     localStorage.setItem('isAuthenticated', 'true');
-    localStorage.setItem('user', JSON.stringify(userData));  // Store user data
+    localStorage.setItem('user', JSON.stringify(userData));
   };
 
-  // Function to handle logout
+  // Logout function to clear authentication and user data
   const logout = () => {
     setIsAuthenticated(false);
     setUser(null);
     localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('user');  // Clear user data from storage
+    localStorage.removeItem('user');
   };
 
   return (

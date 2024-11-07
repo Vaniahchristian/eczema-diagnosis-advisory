@@ -1,17 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const ConsultDoctor = () => {
-  const doctors = [
-    { name: "Dr. Jane Doe", specialization: "Dermatologist", availability: "Available" },
-    { name: "Dr. John Smith", specialization: "Pediatric Dermatologist", availability: "Available" },
-  ];
-
+  const [doctors, setDoctors] = useState([]);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [appointmentSuccess, setAppointmentSuccess] = useState(false);
 
+  useEffect(() => {
+    // Fetch doctors from the backend
+    const fetchDoctors = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/doctors'); // Adjust the URL if needed
+        const data = await response.json();
+        setDoctors(data);
+      } catch (error) {
+        console.error('Failed to fetch doctors:', error);
+      }
+    };
+
+    fetchDoctors();
+  }, []);
+
   const handleSchedule = (doctor) => {
     setSelectedDoctor(doctor);
-    // Mock appointment confirmation
     setAppointmentSuccess(true);
   };
 
@@ -22,8 +32,8 @@ const ConsultDoctor = () => {
         {doctors.map((doctor, index) => (
           <div key={index} className="p-4 bg-white shadow-md rounded-md">
             <h2 className="text-xl font-semibold text-gray-800">{doctor.name}</h2>
-            <p className="text-gray-600">Specialization: {doctor.specialization}</p>
-            <p className={`text-${doctor.availability === 'Available' ? 'green' : 'red'}-500`}>{doctor.availability}</p>
+            <p className="text-gray-600">Specialization: {doctor.specialization || 'General'}</p>
+            <p className="text-green-500">{doctor.availability || 'Available'}</p>
             <button
               onClick={() => handleSchedule(doctor)}
               className="mt-4 px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600"

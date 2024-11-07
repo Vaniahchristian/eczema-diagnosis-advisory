@@ -12,6 +12,7 @@ const LoginSignUp = () => {
     name: '',
     email: '',
     password: '',
+    role: 'user', // Default role
   });
 
   const [error, setError] = useState('');
@@ -19,9 +20,7 @@ const LoginSignUp = () => {
 
   // Header specific to this page
   const Header = () => (
-    <header className="w-full bg-transparent py-8 text-white text-center">
-      
-      
+    <header className="w-full bg-transparent py-6 text-white text-center">
       <h1 className='text-2xl font-extrabold'>ECZEMA DIAGNOSIS AND ADVISORY SYSTEM</h1>
     </header>
   );
@@ -44,13 +43,13 @@ const LoginSignUp = () => {
     try {
       let response;
       if (isLogin) {
-        response = await fetch('https://eczema-diagnosis-advisory.onrender.com/api/login', {
+        response = await fetch('http://localhost:5000/api/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: formData.email, password: formData.password }),
         });
       } else {
-        response = await fetch('https://eczema-diagnosis-advisory.onrender.com/api/signup', {
+        response = await fetch('http://localhost:5000/api/signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData),
@@ -65,8 +64,9 @@ const LoginSignUp = () => {
 
       if (isLogin) {
         login(data.user);
+        localStorage.setItem('userRole', data.role); // Store role in localStorage
         setSuccessMessage('Successfully logged in!');
-        navigate('/dashboard');
+        navigate(data.role === 'doctor' ? '/doctor-dashboard' : '/dashboard');
       } else {
         setSuccessMessage('Account created successfully!');
         navigate('/login');
@@ -85,12 +85,13 @@ const LoginSignUp = () => {
       name: '',
       email: '',
       password: '',
+      role: 'user', // Reset to default role
     });
     setError('');
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center bg-cover bg-center bg-[url('/public/eczema1.jpg')]">
+    <div className="min-h-screen w-full flex flex-col items-center bg-cover bg-center bg-[url('/public/eczema1.jpg')] pb-12">
       <Header />
 
       <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 max-w-md w-full mt-8 z-10">
@@ -105,7 +106,7 @@ const LoginSignUp = () => {
           </p>
         )}
 
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-center mb-6 ">
           <button
             onClick={() => setIsLogin(true)}
             className={`px-4 py-2 font-semibold text-sm rounded-l-lg focus:outline-none ${
@@ -126,24 +127,42 @@ const LoginSignUp = () => {
 
         <form onSubmit={handleSubmit}>
           {!isLogin && (
-            <div className="mb-4">
-              <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="name">
-                Full Name
-              </label>
-              <div className="relative">
-                <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  placeholder="Enter your full name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
-                  required={!isLogin}
-                />
+            <>
+              <div className="mb-4">
+                <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="name">
+                  Full Name
+                </label>
+                <div className="relative">
+                  <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    placeholder="Enter your full name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
+                    required
+                  />
+                </div>
               </div>
-            </div>
+
+              <div className="mb-4">
+                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="role">
+                  Select Role
+                </label>
+                <select
+                  id="role"
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                >
+                  <option value="user">User</option>
+                  <option value="doctor">Doctor</option>
+                </select>
+              </div>
+            </>
           )}
 
           <div className="mb-4">

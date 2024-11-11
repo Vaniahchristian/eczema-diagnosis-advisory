@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 require('dotenv').config();
 
+
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -24,6 +25,22 @@ const userSchema = new mongoose.Schema({
 });
 
 const User = mongoose.model('User', userSchema);
+
+
+
+const consultationSchema = new mongoose.Schema({
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  doctor: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  scheduledTime: Date,
+  consultationType: { type: String, enum: ['chat', 'video'], default: 'chat' },
+  notes: String,
+  feedback: String,
+  chatLogs: [{ message: String, sender: String, timestamp: Date }],
+});
+
+const Consultation = mongoose.model('Consultation', consultationSchema);
+
+
 
 // Register Route
 app.post('/api/signup', async (req, res) => {
@@ -83,6 +100,38 @@ app.get('/api/doctors', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch doctors' });
   }
 });
+
+//Endpoints for Consultation Scheduling and Details
+app.post('/api/consultations/schedule', async (req, res) => {
+  const { userId, doctorId, scheduledTime, consultationType } = req.body;
+  try {
+    const consultation = new Consultation({
+      user: userId,
+      doctor: doctorId,
+      scheduledTime,
+      consultationType,
+    });
+    await consultation.save();
+    // Send notification logic (e.g., email or push notification)
+    res.status(201).json({ message: 'Consultation scheduled successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to schedule consultation' });
+  }
+});
+
+//An endpoint to submit feedback after a consultation.
+app.post('/api/consultations/:id/feedback', async (req, res) => {
+  const { id } = req.params;
+  const { feedback } = req.body;
+  try {
+    const consultation = await Consultation.findByIdAndUpdate(id, { feedback }, { new: true });
+    res.json(consultation);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to submit feedback' });
+  }
+});
+
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

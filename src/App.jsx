@@ -20,6 +20,10 @@ import Profile from './pages/Profile';
 import ConsultDoctor from './pages/ConsultDoctor';
 import FAQ from './pages/FAQ';
 import Notifications from './pages/Notifications';
+import DoctorInteraction from './pages/DoctorInteraction';
+import ConsultationRoom from './pages/ConsultationRoom';
+
+
 
 
 const App = () => {
@@ -51,6 +55,8 @@ const App = () => {
             <Route path="/doctor" element={<ConsultDoctor />} />
             <Route path="/faq" element={< FAQ />} />
             <Route path="/notifications" element={< Notifications />} />
+            <Route path="/doctorinteraction" element={< DoctorInteraction />} />
+            <Route path="//consultation-room" element={< ConsultationRoom />} />
           </Route>
 
           {/* Catch-All Route */}

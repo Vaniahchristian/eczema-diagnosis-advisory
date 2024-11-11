@@ -56,7 +56,7 @@ const App = () => {
             <Route path="/faq" element={< FAQ />} />
             <Route path="/notifications" element={< Notifications />} />
             <Route path="/doctorinteraction" element={< DoctorInteraction />} />
-            <Route path="//consultation-room" element={< ConsultationRoom />} />
+            <Route path="/consultation-room" element={< ConsultationRoom />} />
           </Route>
 
           {/* Catch-All Route */}

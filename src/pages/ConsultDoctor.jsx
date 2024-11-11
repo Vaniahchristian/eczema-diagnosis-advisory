@@ -9,7 +9,7 @@ const ConsultDoctor = () => {
     // Fetch doctors from the backend
     const fetchDoctors = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/doctors'); // Adjust the URL if needed
+        const response = await fetch('https://eczema-diagnosis-advisory.onrender.com/api/doctors'); // Adjust the URL if needed
         const data = await response.json();
         setDoctors(data);
       } catch (error) {

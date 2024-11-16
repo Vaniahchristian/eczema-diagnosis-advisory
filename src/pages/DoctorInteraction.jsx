@@ -15,7 +15,7 @@ const DoctorInteraction = () => {
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/doctors');
+        const response = await fetch('https://eczema-diagnosis-advisory.onrender.com/api/doctors');
         const data = await response.json();
         setDoctors(data);
       } catch (err) {

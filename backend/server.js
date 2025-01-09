@@ -131,7 +131,28 @@ app.post('/api/consultations/:id/feedback', async (req, res) => {
   }
 });
 
+// Get User Profile Route
+app.get('/api/profile', async (req, res) => {
+  const token = req.headers.authorization;
 
+  if (!token) {
+    return res.status(401).json({ error: 'No token provided' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch user profile' });
+  }
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

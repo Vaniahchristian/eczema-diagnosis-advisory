@@ -1,9 +1,28 @@
 // src/pages/Profile.jsx
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
+import axios from 'axios';
 
 const Profile = () => {
-  const { user, logout } = useContext(AuthContext);
+  const { user, setUser, logout } = useContext(AuthContext);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get('http://localhost:5000/api/profile', {
+          headers: { Authorization: token },
+        });
+        setUser(response.data);
+      } catch (error) {
+        console.error('Failed to fetch user profile:', error);
+      }
+    };
+
+    if (!user) {
+      fetchUserProfile();
+    }
+  }, [user, setUser]);
 
   if (!user) {
     return <p>Loading profile...</p>;  // Fallback for cases where user data is not yet loaded

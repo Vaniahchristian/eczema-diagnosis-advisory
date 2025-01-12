@@ -1,233 +1,266 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { AuthContext } from './AuthContext';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { io } from 'socket.io-client';
+import { format } from 'date-fns';
+import { useAuth } from './AuthContext';
 
 export const WebSocketContext = createContext(null);
 
-// Mock WebSocket implementation for demo purposes
-class MockWebSocket {
-  constructor(url) {
-    this.url = url;
-    this.onmessage = null;
-    this.onopen = null;
-    this.onclose = null;
-    this.onerror = null;
-    this.readyState = 0; // CONNECTING
-
-    // Simulate connection delay
-    setTimeout(() => {
-      this.readyState = 1; // OPEN
-      if (this.onopen) {
-        this.onopen({ type: 'open' });
-      }
-    }, 100);
-  }
-
-  send(data) {
-    // Simulate message echo for demo purposes
-    setTimeout(() => {
-      if (this.onmessage) {
-        this.onmessage({ data });
-      }
-    }, 100);
-  }
-
-  close() {
-    this.readyState = 3; // CLOSED
-    if (this.onclose) {
-      this.onclose({ type: 'close' });
-    }
-  }
-}
+// Constants
+const SOCKET_URL = 'http://localhost:3001'; // Replace with your actual WebSocket server URL
+const RECONNECTION_ATTEMPTS = 5;
+const RECONNECTION_DELAY = 2000;
 
 export const WebSocketProvider = ({ children }) => {
-  const { user } = useContext(AuthContext);
+  const { user } = useAuth();
   const [socket, setSocket] = useState(null);
   const [connected, setConnected] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [messages, setMessages] = useState({});
+  const [appointments, setAppointments] = useState([]);
+  const [onlineDoctors, setOnlineDoctors] = useState([]);
+  const [typing, setTyping] = useState({});
 
+  // Initialize WebSocket connection
   useEffect(() => {
-    if (user) {
-      // In a real application, replace 'MockWebSocket' with actual WebSocket
-      const ws = new MockWebSocket('wss://api.example.com/ws');
+    if (user?.token) {
+      const socketInstance = io(SOCKET_URL, {
+        auth: {
+          token: user.token,
+        },
+        reconnectionAttempts: RECONNECTION_ATTEMPTS,
+        reconnectionDelay: RECONNECTION_DELAY,
+        transports: ['websocket'],
+      });
 
-      ws.onopen = () => {
+      socketInstance.on('connect', () => {
         console.log('WebSocket connected');
         setConnected(true);
         
-        // Send authentication message
-        ws.send(JSON.stringify({
-          type: 'auth',
-          token: user.token,
-        }));
-      };
+        // Join user's room
+        socketInstance.emit('join', {
+          userId: user.id,
+          role: user.role,
+        });
+      });
 
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          handleWebSocketMessage(data);
-        } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
-        }
-      };
-
-      ws.onclose = () => {
+      socketInstance.on('disconnect', () => {
         console.log('WebSocket disconnected');
         setConnected(false);
-      };
+      });
 
-      ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
-      };
+      // Handle incoming messages
+      socketInstance.on('message', (data) => {
+        handleIncomingMessage(data);
+      });
 
-      setSocket(ws);
+      // Handle notifications
+      socketInstance.on('notification', (data) => {
+        handleNotification(data);
+      });
+
+      // Handle appointment updates
+      socketInstance.on('appointment_update', (data) => {
+        handleAppointmentUpdate(data);
+      });
+
+      // Handle online doctors
+      socketInstance.on('online_doctors', (doctors) => {
+        setOnlineDoctors(doctors);
+      });
+
+      // Handle typing indicators
+      socketInstance.on('typing', (data) => {
+        setTyping(prev => ({
+          ...prev,
+          [data.conversationId]: {
+            isTyping: data.isTyping,
+            user: data.user,
+          },
+        }));
+      });
+
+      setSocket(socketInstance);
 
       return () => {
-        ws.close();
+        socketInstance.disconnect();
       };
     }
   }, [user]);
 
-  const handleWebSocketMessage = (data) => {
-    switch (data.type) {
-      case 'notification':
-        setNotifications(prev => [data.notification, ...prev]);
-        break;
-      
-      case 'message':
-        setMessages(prev => ({
-          ...prev,
-          [data.conversationId]: [
-            ...(prev[data.conversationId] || []),
-            data.message,
-          ],
-        }));
-        break;
-      
-      case 'appointment_update':
-        // Handle appointment updates
-        break;
-      
-      case 'patient_update':
-        // Handle patient updates
-        break;
-      
-      default:
-        console.log('Unknown message type:', data.type);
-    }
-  };
-
-  const sendMessage = (conversationId, content, fileData = null) => {
-    if (socket && socket.readyState === 1) {
-      const messageData = {
-        type: 'message',
-        conversationId,
-        message: {
-          id: Date.now(),
-          sender: user.id,
-          content,
-          timestamp: new Date(),
-          delivered: false,
-          read: false,
-          ...(fileData && { type: 'file', ...fileData }),
+  // Message handling
+  const handleIncomingMessage = useCallback((data) => {
+    const { conversationId, message } = data;
+    
+    setMessages(prev => ({
+      ...prev,
+      [conversationId]: [
+        ...(prev[conversationId] || []),
+        {
+          ...message,
+          timestamp: new Date(message.timestamp),
         },
-      };
-      
-      socket.send(JSON.stringify(messageData));
+      ].sort((a, b) => a.timestamp - b.timestamp),
+    }));
 
-      // Simulate message delivery after 1 second
-      setTimeout(() => {
-        setMessages(prev => ({
-          ...prev,
-          [conversationId]: prev[conversationId].map(msg =>
-            msg.id === messageData.message.id
-              ? { ...msg, delivered: true }
-              : msg
-          ),
-        }));
-
-        // Simulate message being read after 3 seconds
-        setTimeout(() => {
-          setMessages(prev => ({
-            ...prev,
-            [conversationId]: prev[conversationId].map(msg =>
-              msg.id === messageData.message.id
-                ? { ...msg, read: true }
-                : msg
-            ),
-          }));
-        }, 2000);
-      }, 1000);
+    // Mark message as delivered
+    if (socket) {
+      socket.emit('message_delivered', {
+        messageId: message.id,
+        conversationId,
+      });
     }
-  };
+  }, [socket]);
 
-  const markNotificationAsRead = (notificationId) => {
-    if (socket && socket.readyState === 1) {
-      socket.send(JSON.stringify({
-        type: 'mark_notification_read',
-        notificationId,
-      }));
+  // Notification handling
+  const handleNotification = useCallback((notification) => {
+    setNotifications(prev => [
+      {
+        ...notification,
+        timestamp: new Date(notification.timestamp),
+      },
+      ...prev,
+    ]);
+  }, []);
 
+  // Appointment handling
+  const handleAppointmentUpdate = useCallback((data) => {
+    setAppointments(prev => {
+      const updated = [...prev];
+      const index = updated.findIndex(apt => apt.id === data.appointment.id);
+      
+      if (index !== -1) {
+        updated[index] = {
+          ...updated[index],
+          ...data.appointment,
+        };
+      } else {
+        updated.push(data.appointment);
+      }
+
+      return updated.sort((a, b) => new Date(a.date) - new Date(b.date));
+    });
+  }, []);
+
+  // Send message
+  const sendMessage = useCallback((conversationId, content, fileData = null) => {
+    if (socket && connected) {
+      const messageData = {
+        conversationId,
+        content,
+        timestamp: new Date(),
+        sender: user.id,
+        ...(fileData && { file: fileData }),
+      };
+
+      socket.emit('send_message', messageData);
+    }
+  }, [socket, connected, user]);
+
+  // Book appointment
+  const bookAppointment = useCallback(async (doctorId, date, type) => {
+    if (socket && connected) {
+      return new Promise((resolve, reject) => {
+        socket.emit('book_appointment', {
+          doctorId,
+          date,
+          type,
+        }, (response) => {
+          if (response.success) {
+            resolve(response.appointment);
+          } else {
+            reject(new Error(response.error));
+          }
+        });
+      });
+    }
+    return Promise.reject(new Error('Socket not connected'));
+  }, [socket, connected]);
+
+  // Cancel appointment
+  const cancelAppointment = useCallback(async (appointmentId) => {
+    if (socket && connected) {
+      return new Promise((resolve, reject) => {
+        socket.emit('cancel_appointment', {
+          appointmentId,
+        }, (response) => {
+          if (response.success) {
+            resolve(response.appointment);
+          } else {
+            reject(new Error(response.error));
+          }
+        });
+      });
+    }
+    return Promise.reject(new Error('Socket not connected'));
+  }, [socket, connected]);
+
+  // Mark notification as read
+  const markNotificationAsRead = useCallback((notificationId) => {
+    if (socket && connected) {
+      socket.emit('mark_notification_read', { notificationId });
       setNotifications(prev =>
         prev.map(notif =>
           notif.id === notificationId ? { ...notif, read: true } : notif
         )
       );
     }
-  };
+  }, [socket, connected]);
 
-  const clearNotifications = () => {
-    if (socket && socket.readyState === 1) {
-      socket.send(JSON.stringify({
-        type: 'clear_notifications',
-      }));
-
+  // Clear notifications
+  const clearNotifications = useCallback(() => {
+    if (socket && connected) {
+      socket.emit('clear_notifications');
       setNotifications([]);
     }
-  };
+  }, [socket, connected]);
 
-  // Demo function to simulate receiving notifications
-  const simulateNotification = (type) => {
-    const notification = {
-      id: Date.now(),
-      type,
-      message: `Demo ${type} notification`,
-      timestamp: new Date(),
-      read: false,
-    };
+  // Send typing indicator
+  const sendTypingIndicator = useCallback((conversationId, isTyping) => {
+    if (socket && connected) {
+      socket.emit('typing', {
+        conversationId,
+        isTyping,
+      });
+    }
+  }, [socket, connected]);
 
-    handleWebSocketMessage({
-      type: 'notification',
-      notification,
-    });
-  };
-
-  // Demo function to simulate receiving messages
-  const simulateMessage = (conversationId, content) => {
-    const message = {
-      id: Date.now(),
-      sender: 'patient',
-      content,
-      timestamp: new Date(),
-    };
-
-    handleWebSocketMessage({
-      type: 'message',
-      conversationId,
-      message,
-    });
-  };
+  // Get conversation history
+  const getConversationHistory = useCallback(async (conversationId) => {
+    if (socket && connected) {
+      return new Promise((resolve, reject) => {
+        socket.emit('get_conversation_history', { conversationId }, (response) => {
+          if (response.success) {
+            setMessages(prev => ({
+              ...prev,
+              [conversationId]: response.messages.map(msg => ({
+                ...msg,
+                timestamp: new Date(msg.timestamp),
+              })),
+            }));
+            resolve(response.messages);
+          } else {
+            reject(new Error(response.error));
+          }
+        });
+      });
+    }
+    return Promise.reject(new Error('Socket not connected'));
+  }, [socket, connected]);
 
   const value = {
     connected,
     notifications,
     messages,
+    appointments,
+    onlineDoctors,
+    typing,
     sendMessage,
+    bookAppointment,
+    cancelAppointment,
     markNotificationAsRead,
     clearNotifications,
-    // Demo functions
-    simulateNotification,
-    simulateMessage,
+    sendTypingIndicator,
+    getConversationHistory,
   };
 
   return (

@@ -1,342 +1,344 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
-  Grid,
-  Card,
-  CardContent,
+  Paper,
   Typography,
   Button,
+  Grid,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
+  Select,
   MenuItem,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
-  IconButton,
-  Chip,
-  useTheme,
+  FormControl,
+  InputLabel,
   Alert,
+  CircularProgress,
 } from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { TimePicker } from '@mui/x-date-pickers/TimePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import {
-  Event as EventIcon,
-  VideoCall as VideoCallIcon,
-  Edit as EditIcon,
-  Cancel as CancelIcon,
-} from '@mui/icons-material';
+import { LocalizationProvider, DatePicker, TimePicker } from '@mui/x-date-pickers';
 import { format } from 'date-fns';
+import { useAuth } from '../../contexts/AuthContext';
+import { useWebSocket } from '../../contexts/WebSocketContext';
+import api from '../../config/api';
 
 const Appointments = () => {
-  const theme = useTheme();
-  const [openBooking, setOpenBooking] = useState(false);
+  const { user } = useAuth();
+  const { sendNotification } = useWebSocket();
+  
+  const [doctors, setDoctors] = useState([]);
+  const [appointments, setAppointments] = useState([]);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
-  const [selectedDoctor, setSelectedDoctor] = useState('');
-  const [appointmentType, setAppointmentType] = useState('');
-  const [notes, setNotes] = useState('');
-  const [bookingError, setBookingError] = useState('');
-  const [bookingSuccess, setBookingSuccess] = useState(false);
+  const [reason, setReason] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  // Simulated data
-  const doctors = [
-    { id: 1, name: 'Dr. Sarah Johnson', specialty: 'Dermatologist' },
-    { id: 2, name: 'Dr. Michael Chen', specialty: 'Dermatologist' },
-    { id: 3, name: 'Dr. Emily Brown', specialty: 'Dermatologist' },
-  ];
+  useEffect(() => {
+    if (user?.id) {
+      fetchDoctors();
+      fetchAppointments();
+    }
+  }, [user?.id]);
 
-  const appointmentTypes = [
-    { value: 'initial', label: 'Initial Consultation' },
-    { value: 'followup', label: 'Follow-up Visit' },
-    { value: 'emergency', label: 'Emergency Consultation' },
-  ];
+  const fetchDoctors = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/doctors');
+      setDoctors(response.data);
+    } catch (error) {
+      setError('Failed to load doctors');
+      console.error('Error fetching doctors:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const appointments = [
-    {
-      id: 1,
-      doctor: 'Dr. Sarah Johnson',
-      date: new Date(2024, 0, 15, 10, 30),
-      type: 'Follow-up Visit',
-      status: 'upcoming',
-      isVideo: true,
-    },
-    {
-      id: 2,
-      doctor: 'Dr. Michael Chen',
-      date: new Date(2024, 0, 20, 14, 0),
-      type: 'Initial Consultation',
-      status: 'upcoming',
-      isVideo: false,
-    },
-    {
-      id: 3,
-      doctor: 'Dr. Emily Brown',
-      date: new Date(2024, 0, 5, 11, 0),
-      type: 'Emergency Consultation',
-      status: 'completed',
-      isVideo: true,
-    },
-  ];
+  const fetchAppointments = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get(`/appointments/patient/${user.id}`);
+      if (Array.isArray(response.data)) {
+        setAppointments(response.data);
+      } else {
+        setAppointments([]);
+        console.error('Invalid appointments data:', response.data);
+      }
+    } catch (error) {
+      setError('Failed to load appointments');
+      console.error('Error fetching appointments:', error);
+      setAppointments([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const handleBookAppointment = () => {
-    // Basic validation
-    if (!selectedDate || !selectedTime || !selectedDoctor || !appointmentType) {
-      setBookingError('Please fill in all required fields');
+  const handleBookAppointment = async () => {
+    if (!selectedDoctor || !selectedDate || !selectedTime || !reason) {
+      setError('Please fill in all fields');
       return;
     }
 
-    // Simulate API call
-    setTimeout(() => {
-      setBookingSuccess(true);
-      setBookingError('');
+    try {
+      setLoading(true);
+      const appointmentDateTime = new Date(selectedDate);
+      appointmentDateTime.setHours(selectedTime.getHours());
+      appointmentDateTime.setMinutes(selectedTime.getMinutes());
+
+      const appointmentData = {
+        doctorId: selectedDoctor,
+        patientId: user.id,
+        datetime: appointmentDateTime,
+        reason: reason,
+        status: 'pending',
+      };
+
+      const response = await api.post('/appointments', appointmentData);
       
-      // Reset form
-      setTimeout(() => {
-        setOpenBooking(false);
-        setSelectedDate(null);
-        setSelectedTime(null);
-        setSelectedDoctor('');
-        setAppointmentType('');
-        setNotes('');
-        setBookingSuccess(false);
-      }, 1500);
-    }, 1000);
+      // Send notification to doctor
+      sendNotification({
+        type: 'appointment_request',
+        recipientId: selectedDoctor,
+        data: {
+          appointmentId: response.data._id,
+          patientName: `${user.firstName} ${user.lastName}`,
+          datetime: appointmentDateTime,
+        },
+      });
+
+      setAppointments(prevAppointments => [...prevAppointments, response.data]);
+      handleCloseDialog();
+      
+    } catch (error) {
+      setError('Failed to book appointment');
+      console.error('Error booking appointment:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelAppointment = async (appointmentId) => {
+    try {
+      setLoading(true);
+      await api.patch(`/appointments/${appointmentId}`, {
+        status: 'cancelled',
+      });
+      
+      // Update local state
+      setAppointments(prevAppointments => 
+        prevAppointments.map(apt => 
+          apt._id === appointmentId ? { ...apt, status: 'cancelled' } : apt
+        )
+      );
+
+      // Send notification to doctor
+      const appointment = appointments.find(apt => apt._id === appointmentId);
+      if (appointment) {
+        sendNotification({
+          type: 'appointment_cancelled',
+          recipientId: appointment.doctorId,
+          data: {
+            appointmentId,
+            patientName: `${user.firstName} ${user.lastName}`,
+            datetime: appointment.datetime,
+          },
+        });
+      }
+    } catch (error) {
+      setError('Failed to cancel appointment');
+      console.error('Error cancelling appointment:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOpenDialog = () => {
+    setOpenDialog(true);
+    setError('');
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setSelectedDoctor('');
+    setSelectedDate(null);
+    setSelectedTime(null);
+    setReason('');
+    setError('');
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'upcoming':
-        return theme.palette.primary.main;
-      case 'completed':
-        return theme.palette.success.main;
+      case 'confirmed':
+        return 'success.main';
+      case 'pending':
+        return 'warning.main';
       case 'cancelled':
-        return theme.palette.error.main;
+        return 'error.main';
       default:
-        return theme.palette.grey[500];
+        return 'text.primary';
     }
   };
 
+  if (!user?.id) {
+    return (
+      <Box sx={{ p: 3, textAlign: 'center' }}>
+        <Typography variant="body1" color="text.secondary">
+          Please log in to view your appointments.
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
-    <Box sx={{ p: 2 }}>
-      <Grid container spacing={3}>
-        {/* Header and Book Appointment Button */}
-        <Grid item xs={12}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="h4">Appointments</Typography>
-            <Button
-              variant="contained"
-              startIcon={<EventIcon />}
-              onClick={() => setOpenBooking(true)}
-            >
-              Book Appointment
-            </Button>
-          </Box>
-        </Grid>
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+        <Typography variant="h5" component="h1">
+          My Appointments
+        </Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleOpenDialog}
+          disabled={loading}
+        >
+          Book Appointment
+        </Button>
+      </Box>
 
-        {/* Upcoming Appointments */}
-        <Grid item xs={12} md={8}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Upcoming Appointments
-              </Typography>
-              <List>
-                {appointments
-                  .filter((apt) => apt.status === 'upcoming')
-                  .map((appointment) => (
-                    <ListItem
-                      key={appointment.id}
-                      divider
-                      sx={{
-                        '&:last-child': {
-                          borderBottom: 'none',
-                        },
-                      }}
-                    >
-                      <ListItemText
-                        primary={
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Typography variant="subtitle1">
-                              {appointment.doctor}
-                            </Typography>
-                            {appointment.isVideo && (
-                              <VideoCallIcon
-                                sx={{ ml: 1, color: 'primary.main' }}
-                              />
-                            )}
-                          </Box>
-                        }
-                        secondary={
-                          <>
-                            <Typography variant="body2" color="text.secondary">
-                              {format(appointment.date, 'MMMM d, yyyy')} at{' '}
-                              {format(appointment.date, 'h:mm a')}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              {appointment.type}
-                            </Typography>
-                          </>
-                        }
-                      />
-                      <ListItemSecondaryAction>
-                        <IconButton
-                          edge="end"
-                          aria-label="edit"
-                          sx={{ mr: 1 }}
-                        >
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton edge="end" aria-label="cancel">
-                          <CancelIcon />
-                        </IconButton>
-                      </ListItemSecondaryAction>
-                    </ListItem>
-                  ))}
-              </List>
-            </CardContent>
-          </Card>
-        </Grid>
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
 
-        {/* Past Appointments */}
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Past Appointments
-              </Typography>
-              <List>
-                {appointments
-                  .filter((apt) => apt.status === 'completed')
-                  .map((appointment) => (
-                    <ListItem
-                      key={appointment.id}
-                      divider
-                      sx={{
-                        '&:last-child': {
-                          borderBottom: 'none',
-                        },
-                      }}
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+          <CircularProgress />
+        </Box>
+      ) : appointments.length === 0 ? (
+        <Paper sx={{ p: 3, textAlign: 'center' }}>
+          <Typography variant="body1" color="text.secondary">
+            No appointments found. Book your first appointment now!
+          </Typography>
+        </Paper>
+      ) : (
+        <Grid container spacing={2}>
+          {appointments.map((appointment) => (
+            <Grid item xs={12} key={appointment._id}>
+              <Paper sx={{ p: 2 }}>
+                <Grid container spacing={2} alignItems="center">
+                  <Grid item xs={12} sm={4}>
+                    <Typography variant="subtitle1">
+                      Dr. {doctors.find(d => d._id === appointment.doctorId)?.firstName} {' '}
+                      {doctors.find(d => d._id === appointment.doctorId)?.lastName}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {doctors.find(d => d._id === appointment.doctorId)?.specialization}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={3}>
+                    <Typography variant="body1">
+                      {format(new Date(appointment.datetime), 'MMM dd, yyyy')}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {format(new Date(appointment.datetime), 'hh:mm a')}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={3}>
+                    <Typography
+                      variant="body1"
+                      sx={{ color: getStatusColor(appointment.status) }}
                     >
-                      <ListItemText
-                        primary={appointment.doctor}
-                        secondary={
-                          <>
-                            <Typography variant="body2" color="text.secondary">
-                              {format(appointment.date, 'MMMM d, yyyy')}
-                            </Typography>
-                            <Chip
-                              label={appointment.status}
-                              size="small"
-                              sx={{
-                                backgroundColor: getStatusColor(appointment.status),
-                                color: 'white',
-                                mt: 1,
-                              }}
-                            />
-                          </>
-                        }
-                      />
-                    </ListItem>
-                  ))}
-              </List>
-            </CardContent>
-          </Card>
+                      {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={2}>
+                    {appointment.status !== 'cancelled' && (
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        onClick={() => handleCancelAppointment(appointment._id)}
+                        disabled={loading}
+                      >
+                        Cancel
+                      </Button>
+                    )}
+                  </Grid>
+                </Grid>
+              </Paper>
+            </Grid>
+          ))}
         </Grid>
-      </Grid>
+      )}
 
       {/* Book Appointment Dialog */}
-      <Dialog
-        open={openBooking}
-        onClose={() => setOpenBooking(false)}
-        maxWidth="sm"
-        fullWidth
-      >
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle>Book an Appointment</DialogTitle>
         <DialogContent>
-          {bookingError && (
+          {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
-              {bookingError}
+              {error}
             </Alert>
           )}
-          {bookingSuccess && (
-            <Alert severity="success" sx={{ mb: 2 }}>
-              Appointment booked successfully!
-            </Alert>
-          )}
-          <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={12}>
-                <TextField
-                  select
-                  fullWidth
-                  label="Select Doctor"
-                  value={selectedDoctor}
-                  onChange={(e) => setSelectedDoctor(e.target.value)}
-                >
-                  {doctors.map((doctor) => (
-                    <MenuItem key={doctor.id} value={doctor.id}>
-                      {doctor.name} - {doctor.specialty}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  select
-                  fullWidth
-                  label="Appointment Type"
-                  value={appointmentType}
-                  onChange={(e) => setAppointmentType(e.target.value)}
-                >
-                  {appointmentTypes.map((type) => (
-                    <MenuItem key={type.value} value={type.value}>
-                      {type.label}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
-              <Grid item xs={12} sm={6}>
+          <Box sx={{ mt: 2 }}>
+            <FormControl fullWidth sx={{ mb: 2 }}>
+              <InputLabel>Select Doctor</InputLabel>
+              <Select
+                value={selectedDoctor}
+                onChange={(e) => setSelectedDoctor(e.target.value)}
+                label="Select Doctor"
+              >
+                {doctors.map((doctor) => (
+                  <MenuItem key={doctor._id} value={doctor._id}>
+                    Dr. {doctor.firstName} {doctor.lastName} - {doctor.specialization}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
+              <Box sx={{ mb: 2 }}>
                 <DatePicker
-                  label="Date"
+                  label="Select Date"
                   value={selectedDate}
                   onChange={setSelectedDate}
                   renderInput={(params) => <TextField {...params} fullWidth />}
                   minDate={new Date()}
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
+              </Box>
+              <Box sx={{ mb: 2 }}>
                 <TimePicker
-                  label="Time"
+                  label="Select Time"
                   value={selectedTime}
                   onChange={setSelectedTime}
                   renderInput={(params) => <TextField {...params} fullWidth />}
                 />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Notes (Optional)"
-                  multiline
-                  rows={4}
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                />
-              </Grid>
-            </Grid>
-          </LocalizationProvider>
+              </Box>
+            </LocalizationProvider>
+
+            <TextField
+              fullWidth
+              multiline
+              rows={3}
+              label="Reason for Visit"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+            />
+          </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenBooking(false)}>Cancel</Button>
+          <Button onClick={handleCloseDialog} disabled={loading}>
+            Cancel
+          </Button>
           <Button
             onClick={handleBookAppointment}
             variant="contained"
-            disabled={bookingSuccess}
+            color="primary"
+            disabled={loading}
           >
             Book Appointment
           </Button>

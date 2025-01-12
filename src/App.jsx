@@ -25,6 +25,7 @@ import ImageUpload from "./pages/patient/ImageUpload.jsx";
 import DiagnosisResults from "./pages/patient/DiagnosisResults.jsx";
 import Appointments from "./pages/patient/Appointments.jsx";
 import MessagingCenter from "./pages/patient/MessagingCenter.jsx";
+import DoctorInteraction from "./pages/patient/DoctorInteraction.jsx";
 import EducationContent from "./pages/patient/EducationContent.jsx";
 import Settings from "./pages/patient/Settings.jsx";
 import Profile from "./pages/patient/Profile.jsx";
@@ -65,6 +66,7 @@ const App = () => {
                 <Route path="/patient/results" element={<DiagnosisResults />} />
                 <Route path="/patient/appointments" element={<Appointments />} />
                 <Route path="/patient/messages" element={<MessagingCenter />} />
+                <Route path="/patient/doctors" element={<DoctorInteraction />} />
                 <Route path="/patient/education" element={<EducationContent />} />
                 <Route path="/patient/settings" element={<Settings />} />
                 <Route path="/patient/profile" element={<Profile />} />

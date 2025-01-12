@@ -1,93 +1,79 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Grid,
   Paper,
   Typography,
+  TextField,
+  Button,
   List,
   ListItem,
   ListItemText,
   ListItemAvatar,
   Avatar,
-  TextField,
   IconButton,
-  Divider,
   Badge,
-  useTheme,
+  Divider,
   CircularProgress,
+  Alert,
 } from '@mui/material';
 import {
   Send as SendIcon,
   AttachFile as AttachFileIcon,
-  Image as ImageIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 import { format } from 'date-fns';
+import { useAuth } from '../../contexts/AuthContext';
 import { useWebSocket } from '../../contexts/WebSocketContext';
+import api from '../../config/api';
 
 const MessagingCenter = () => {
   const theme = useTheme();
+  const { user } = useAuth();
+  const { sendMessage, lastMessage } = useWebSocket();
+
+  const [doctors, setDoctors] = useState([]);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [message, setMessage] = useState('');
   const [conversations, setConversations] = useState([]);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
-  const { sendMessage, lastMessage } = useWebSocket();
 
-  // Simulated doctor data
-  const doctors = [
-    {
-      id: 1,
-      name: 'Dr. Sarah Johnson',
-      specialty: 'Dermatologist',
-      avatar: '/avatars/doctor1.jpg',
-      lastMessage: 'Your latest test results look good.',
-      timestamp: new Date(2024, 0, 12, 10, 30),
-      unread: 2,
-    },
-    {
-      id: 2,
-      name: 'Dr. Michael Chen',
-      specialty: 'Dermatologist',
-      avatar: '/avatars/doctor2.jpg',
-      lastMessage: 'Please schedule a follow-up appointment.',
-      timestamp: new Date(2024, 0, 11, 15, 45),
-      unread: 0,
-    },
-  ];
-
-  // Simulated messages
-  const sampleMessages = [
-    {
-      id: 1,
-      senderId: 1,
-      content: 'Hello! How can I help you today?',
-      timestamp: new Date(2024, 0, 12, 10, 0),
-      type: 'text',
-    },
-    {
-      id: 2,
-      senderId: 'user',
-      content: 'I have a question about my treatment plan.',
-      timestamp: new Date(2024, 0, 12, 10, 5),
-      type: 'text',
-    },
-    {
-      id: 3,
-      senderId: 1,
-      content: 'Of course! What would you like to know?',
-      timestamp: new Date(2024, 0, 12, 10, 10),
-      type: 'text',
-    },
-  ];
+  useEffect(() => {
+    fetchDoctors();
+  }, []);
 
   useEffect(() => {
     if (selectedDoctor) {
       setLoading(true);
       // Simulate API call to fetch messages
       setTimeout(() => {
-        setMessages(sampleMessages);
+        setMessages([
+          {
+            id: 1,
+            senderId: 1,
+            content: 'Hello! How can I help you today?',
+            timestamp: new Date(2024, 0, 12, 10, 0),
+            type: 'text',
+          },
+          {
+            id: 2,
+            senderId: 'user',
+            content: 'I have a question about my treatment plan.',
+            timestamp: new Date(2024, 0, 12, 10, 5),
+            type: 'text',
+          },
+          {
+            id: 3,
+            senderId: 1,
+            content: 'Of course! What would you like to know?',
+            timestamp: new Date(2024, 0, 12, 10, 10),
+            type: 'text',
+          },
+        ]);
         setLoading(false);
       }, 1000);
     }
@@ -102,6 +88,19 @@ const MessagingCenter = () => {
       handleNewMessage(lastMessage);
     }
   }, [lastMessage]);
+
+  const fetchDoctors = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/doctors');
+      setDoctors(response.data);
+    } catch (error) {
+      setError('Failed to load doctors');
+      console.error('Error fetching doctors:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -171,51 +170,43 @@ const MessagingCenter = () => {
               Conversations
             </Typography>
             <Divider />
-            <List>
-              {doctors.map((doctor) => (
-                <ListItem
-                  key={doctor.id}
-                  button
-                  selected={selectedDoctor?.id === doctor.id}
-                  onClick={() => setSelectedDoctor(doctor)}
-                >
-                  <ListItemAvatar>
-                    <Badge
-                      badgeContent={doctor.unread}
-                      color="primary"
-                      invisible={!doctor.unread}
-                    >
-                      <Avatar src={doctor.avatar} alt={doctor.name}>
-                        {doctor.name[0]}
-                      </Avatar>
-                    </Badge>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={doctor.name}
-                    secondary={
-                      <>
-                        <Typography
-                          component="span"
-                          variant="body2"
-                          color="text.primary"
-                        >
-                          {doctor.specialty}
-                        </Typography>
-                        <br />
-                        {doctor.lastMessage}
-                      </>
-                    }
-                  />
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ ml: 2 }}
+            {loading && !doctors.length ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                <CircularProgress />
+              </Box>
+            ) : error ? (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            ) : (
+              <List>
+                {doctors.map((doctor) => (
+                  <ListItem
+                    key={doctor._id}
+                    button
+                    selected={selectedDoctor?._id === doctor._id}
+                    onClick={() => setSelectedDoctor(doctor)}
                   >
-                    {format(doctor.timestamp, 'MMM d')}
-                  </Typography>
-                </ListItem>
-              ))}
-            </List>
+                    <ListItemAvatar>
+                      <Badge
+                        overlap="circular"
+                        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                        variant="dot"
+                        color={doctor.online ? 'success' : 'error'}
+                      >
+                        <Avatar alt={doctor.name}>
+                          {doctor.firstName?.[0] || 'D'}
+                        </Avatar>
+                      </Badge>
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary={`Dr. ${doctor.firstName} ${doctor.lastName}`}
+                      secondary={doctor.specialization}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            )}
           </Paper>
         </Grid>
 
@@ -226,10 +217,21 @@ const MessagingCenter = () => {
               <>
                 {/* Chat Header */}
                 <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-                  <Typography variant="h6">{selectedDoctor.name}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {selectedDoctor.specialty}
-                  </Typography>
+                  <Grid container alignItems="center" spacing={2}>
+                    <Grid item>
+                      <Avatar alt={selectedDoctor.name}>
+                        {selectedDoctor.firstName?.[0] || 'D'}
+                      </Avatar>
+                    </Grid>
+                    <Grid item xs>
+                      <Typography variant="h6">
+                        Dr. {selectedDoctor.firstName} {selectedDoctor.lastName}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {selectedDoctor.specialization}
+                      </Typography>
+                    </Grid>
+                  </Grid>
                 </Box>
 
                 {/* Messages */}

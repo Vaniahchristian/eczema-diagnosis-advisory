@@ -32,6 +32,7 @@ import {
   Notifications as NotificationsIcon,
   Person as PersonIcon,
   ExitToApp as LogoutIcon,
+  LocalHospital as DoctorIcon,
 } from '@mui/icons-material';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -54,6 +55,11 @@ const menuItems = [
     text: 'Diagnosis Results',
     icon: <ResultsIcon />,
     path: '/patient/results',
+  },
+  {
+    text: 'Doctors',
+    icon: <DoctorIcon />,
+    path: '/patient/doctors',
   },
   {
     text: 'Appointments',

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Box,
   Typography,
@@ -11,6 +11,7 @@ import {
   Chip,
   Divider,
   Button,
+  Alert,
 } from '@mui/material';
 import ImageIcon from '@mui/icons-material/Image';
 import EventIcon from '@mui/icons-material/Event';
@@ -19,62 +20,36 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-
-// Mock notifications data
-const mockNotifications = [
-  {
-    id: 1,
-    type: 'image_upload',
-    message: 'John Doe uploaded new images for diagnosis',
-    timestamp: new Date('2025-01-12T10:30:00'),
-    read: false,
-    patientId: '123',
-    link: '/doctor/patients/123',
-  },
-  {
-    id: 2,
-    type: 'appointment',
-    message: 'New appointment request from Jane Smith',
-    timestamp: new Date('2025-01-12T09:45:00'),
-    read: false,
-    patientId: '124',
-    link: '/doctor/appointments',
-  },
-  {
-    id: 3,
-    type: 'message',
-    message: 'New message from Sarah Johnson',
-    timestamp: new Date('2025-01-12T08:15:00'),
-    read: true,
-    patientId: '125',
-    link: '/doctor/messages',
-  },
-];
+import { useWebSocket } from '../../contexts/WebSocketContext';
 
 const NotificationsPage = () => {
-  const [notifications, setNotifications] = useState(mockNotifications);
   const navigate = useNavigate();
+  const {
+    connected,
+    notifications,
+    markNotificationAsRead,
+    clearNotifications,
+    simulateNotification, // For demo purposes
+  } = useWebSocket();
 
   const handleNotificationClick = (notification) => {
     // Mark as read
-    setNotifications(notifications.map(notif =>
-      notif.id === notification.id ? { ...notif, read: true } : notif
-    ));
+    markNotificationAsRead(notification.id);
     
-    // Navigate to the relevant page
-    navigate(notification.link);
-  };
-
-  const handleDeleteNotification = (id) => {
-    setNotifications(notifications.filter(notif => notif.id !== id));
-  };
-
-  const handleMarkAllRead = () => {
-    setNotifications(notifications.map(notif => ({ ...notif, read: true })));
-  };
-
-  const handleClearAll = () => {
-    setNotifications([]);
+    // Navigate based on notification type
+    switch (notification.type) {
+      case 'image_upload':
+        navigate(`/doctor/patients/${notification.patientId}`);
+        break;
+      case 'appointment':
+        navigate('/doctor/appointments');
+        break;
+      case 'message':
+        navigate('/doctor/messages');
+        break;
+      default:
+        console.log('Unknown notification type:', notification.type);
+    }
   };
 
   const getNotificationIcon = (type) => {
@@ -88,6 +63,13 @@ const NotificationsPage = () => {
       default:
         return <NotificationsIcon />;
     }
+  };
+
+  // For demo purposes - simulate different types of notifications
+  const handleSimulateNotification = () => {
+    const types = ['image_upload', 'appointment', 'message'];
+    const randomType = types[Math.floor(Math.random() * types.length)];
+    simulateNotification(randomType);
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -107,14 +89,25 @@ const NotificationsPage = () => {
           )}
         </Typography>
         <Box>
-          <Button onClick={handleMarkAllRead} sx={{ mr: 1 }}>
-            Mark all as read
+          {/* Demo controls */}
+          <Button
+            onClick={handleSimulateNotification}
+            variant="outlined"
+            sx={{ mr: 1 }}
+          >
+            Simulate Notification
           </Button>
-          <Button onClick={handleClearAll} color="error">
+          <Button onClick={clearNotifications} color="error">
             Clear all
           </Button>
         </Box>
       </Box>
+
+      {!connected && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          You are currently offline. You may miss new notifications until you reconnect.
+        </Alert>
+      )}
 
       <Paper>
         <List>
@@ -133,13 +126,13 @@ const NotificationsPage = () => {
                 </ListItemIcon>
                 <ListItemText
                   primary={notification.message}
-                  secondary={format(notification.timestamp, 'MMM d, yyyy HH:mm')}
+                  secondary={format(new Date(notification.timestamp), 'MMM d, yyyy HH:mm')}
                 />
                 <IconButton
                   edge="end"
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleDeleteNotification(notification.id);
+                    markNotificationAsRead(notification.id);
                   }}
                 >
                   <DeleteIcon />

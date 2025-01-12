@@ -11,8 +11,8 @@ import {
   Button,
   Alert,
 } from '@mui/material';
-import VideoConsultation from '../components/VideoConsultation';
-import TreatmentTracker from '../components/TreatmentTracker';
+import VideoConsultation from '../../components/VideoConsultation';
+import TreatmentTracker from '../../components/TreatmentTracker';
 import axios from 'axios';
 
 const ConsultationRoom = ({ doctorId, consultationType }) => {

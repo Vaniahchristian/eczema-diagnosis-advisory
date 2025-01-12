@@ -1,27 +1,37 @@
 // src/components/PrivateLayout.jsx
-import React, { useContext } from 'react';
+import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import { Box } from '@mui/material';
-import { AuthContext } from '../contexts/AuthContext.jsx';
-import Header from './Header.jsx';
-import Sidebar from './Sidebar.jsx';
+import { Box, CircularProgress } from '@mui/material';
+import { useAuth } from '../contexts/AuthContext';
 
-const PrivateLayout = () => {
-  const { isAuthenticated, loading } = useContext(AuthContext);
+const PrivateLayout = ({ allowedRoles }) => {
+  const { user, isAuthenticated, loading } = useAuth();
 
   if (loading) {
-    return null; // or a loading spinner
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
+  if (allowedRoles && !allowedRoles.includes(user?.role)) {
+    // Redirect to appropriate dashboard based on user role
+    if (user?.role === 'patient') {
+      return <Navigate to="/patient/dashboard" replace />;
+    } else if (user?.role === 'doctor') {
+      return <Navigate to="/doctor/dashboard" replace />;
+    }
+    return <Navigate to="/login" replace />;
+  }
+
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-      <Sidebar />
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <Header />
         <Box component="main" sx={{ flex: 1, p: 3, bgcolor: 'background.default' }}>
           <Outlet />
         </Box>

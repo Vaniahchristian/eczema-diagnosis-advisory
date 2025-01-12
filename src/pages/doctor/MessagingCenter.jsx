@@ -14,92 +14,186 @@ import {
   Badge,
   Grid,
   InputAdornment,
+  CircularProgress,
+  Alert,
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import SearchIcon from '@mui/icons-material/Search';
 import { format } from 'date-fns';
-
-// Mock data for conversations
-const mockConversations = [
-  {
-    id: '1',
-    patientName: 'John Doe',
-    lastMessage: 'Thank you for the advice, doctor.',
-    timestamp: new Date('2025-01-12T09:30:00'),
-    unread: 2,
-    messages: [
-      {
-        id: 1,
-        sender: 'patient',
-        content: 'Hello doctor, I have a question about my treatment.',
-        timestamp: new Date('2025-01-12T09:25:00'),
-      },
-      {
-        id: 2,
-        sender: 'doctor',
-        content: 'Of course, how can I help you?',
-        timestamp: new Date('2025-01-12T09:28:00'),
-      },
-      {
-        id: 3,
-        sender: 'patient',
-        content: 'Thank you for the advice, doctor.',
-        timestamp: new Date('2025-01-12T09:30:00'),
-      },
-    ],
-  },
-  // Add more mock conversations as needed
-];
+import { useWebSocket } from '../../contexts/WebSocketContext';
+import FileUploadDialog from '../../components/FileUploadDialog';
+import DoneAllIcon from '@mui/icons-material/DoneAll';
+import DoneIcon from '@mui/icons-material/Done';
 
 const MessagingCenter = () => {
-  const [conversations, setConversations] = useState(mockConversations);
+  const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const messagesEndRef = useRef(null);
+  const { connected, messages, sendMessage, simulateMessage } = useWebSocket();
+
+  // Simulate initial conversations
+  useEffect(() => {
+    setConversations([
+      {
+        id: '1',
+        patientName: 'John Doe',
+        lastMessage: 'Thank you for the advice, doctor.',
+        timestamp: new Date('2025-01-12T09:30:00'),
+        unread: 2,
+      },
+      {
+        id: '2',
+        patientName: 'Jane Smith',
+        lastMessage: 'When should I apply the medication?',
+        timestamp: new Date('2025-01-12T09:00:00'),
+        unread: 0,
+      },
+    ]);
+  }, []);
+
+  useEffect(() => {
+    if (selectedConversation) {
+      // Update conversation's unread count when selected
+      setConversations(prevConversations =>
+        prevConversations.map(conv =>
+          conv.id === selectedConversation.id
+            ? { ...conv, unread: 0 }
+            : conv
+        )
+      );
+    }
+  }, [selectedConversation]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, selectedConversation]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [selectedConversation]);
-
   const handleSendMessage = () => {
-    if (!newMessage.trim() || !selectedConversation) return;
+    if (!newMessage.trim() || !selectedConversation || !connected) return;
 
-    const newMsg = {
-      id: Date.now(),
-      sender: 'doctor',
-      content: newMessage,
-      timestamp: new Date(),
-    };
+    // Send message through WebSocket
+    sendMessage(selectedConversation.id, newMessage);
 
-    setConversations(conversations.map(conv =>
-      conv.id === selectedConversation.id
-        ? {
-            ...conv,
-            messages: [...conv.messages, newMsg],
-            lastMessage: newMessage,
-            timestamp: new Date(),
-          }
-        : conv
-    ));
+    // Update conversation's last message
+    setConversations(prevConversations =>
+      prevConversations.map(conv =>
+        conv.id === selectedConversation.id
+          ? {
+              ...conv,
+              lastMessage: newMessage,
+              timestamp: new Date(),
+            }
+          : conv
+      )
+    );
 
     setNewMessage('');
-    // TODO: Implement real-time message sending
+
+    // Simulate patient response after 2 seconds
+    setTimeout(() => {
+      simulateMessage(
+        selectedConversation.id,
+        'Thank you for your message, doctor. I understand.'
+      );
+    }, 2000);
   };
 
   const handleFileAttachment = () => {
-    // TODO: Implement file attachment functionality
-    console.log('File attachment clicked');
+    setUploadDialogOpen(true);
+  };
+
+  const handleUploadComplete = (uploadedFiles) => {
+    // Send file messages
+    uploadedFiles.forEach(file => {
+      sendMessage(selectedConversation.id, null, {
+        type: 'file',
+        ...file,
+      });
+    });
+  };
+
+  const renderMessageContent = (message) => {
+    if (message.type === 'file') {
+      if (message.type.startsWith('image/')) {
+        return (
+          <Box>
+            <img
+              src={message.url}
+              alt={message.filename}
+              style={{ maxWidth: '100%', maxHeight: 200, borderRadius: 4 }}
+            />
+            <Typography variant="caption" display="block">
+              {message.filename} ({formatFileSize(message.size)})
+            </Typography>
+          </Box>
+        );
+      } else {
+        return (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              p: 1,
+              bgcolor: 'background.paper',
+              borderRadius: 1,
+            }}
+          >
+            <AttachFileIcon />
+            <Box>
+              <Typography variant="body2">{message.filename}</Typography>
+              <Typography variant="caption" color="text.secondary">
+                {formatFileSize(message.size)}
+              </Typography>
+            </Box>
+          </Box>
+        );
+      }
+    } else {
+      return <Typography variant="body1">{message.content}</Typography>;
+    }
+  };
+
+  const getMessageStatus = (message) => {
+    if (message.sender === 'doctor') {
+      return (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Typography variant="caption" color="inherit">
+            {format(new Date(message.timestamp), 'HH:mm')}
+          </Typography>
+          {message.delivered ? (
+            message.read ? (
+              <DoneAllIcon sx={{ fontSize: 16 }} />
+            ) : (
+              <DoneIcon sx={{ fontSize: 16 }} />
+            )
+          ) : null}
+        </Box>
+      );
+    } else {
+      return (
+        <Typography variant="caption" color="inherit">
+          {format(new Date(message.timestamp), 'HH:mm')}
+        </Typography>
+      );
+    }
   };
 
   const filteredConversations = conversations.filter(conv =>
     conv.patientName.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const currentMessages = selectedConversation
+    ? messages[selectedConversation.id] || []
+    : [];
 
   return (
     <Box sx={{ height: 'calc(100vh - 100px)', display: 'flex' }}>
@@ -163,11 +257,16 @@ const MessagingCenter = () => {
               <Typography variant="h6">
                 {selectedConversation.patientName}
               </Typography>
+              {!connected && (
+                <Alert severity="warning" sx={{ mt: 1 }}>
+                  You are currently offline. Messages will be sent when you reconnect.
+                </Alert>
+              )}
             </Box>
 
             {/* Messages */}
             <Box sx={{ flexGrow: 1, overflow: 'auto', p: 2 }}>
-              {selectedConversation.messages.map((message) => (
+              {currentMessages.map((message) => (
                 <Box
                   key={message.id}
                   sx={{
@@ -184,10 +283,8 @@ const MessagingCenter = () => {
                       color: message.sender === 'doctor' ? 'white' : 'text.primary',
                     }}
                   >
-                    <Typography variant="body1">{message.content}</Typography>
-                    <Typography variant="caption" color={message.sender === 'doctor' ? 'white' : 'text.secondary'}>
-                      {format(message.timestamp, 'HH:mm')}
-                    </Typography>
+                    {renderMessageContent(message)}
+                    {getMessageStatus(message)}
                   </Paper>
                 </Box>
               ))}
@@ -214,15 +311,16 @@ const MessagingCenter = () => {
                         handleSendMessage();
                       }
                     }}
+                    disabled={!connected}
                   />
                 </Grid>
                 <Grid item>
                   <IconButton
                     color="primary"
                     onClick={handleSendMessage}
-                    disabled={!newMessage.trim()}
+                    disabled={!connected || !newMessage.trim()}
                   >
-                    <SendIcon />
+                    {connected ? <SendIcon /> : <CircularProgress size={24} />}
                   </IconButton>
                 </Grid>
               </Grid>
@@ -243,6 +341,11 @@ const MessagingCenter = () => {
           </Box>
         )}
       </Box>
+      <FileUploadDialog
+        open={uploadDialogOpen}
+        onClose={() => setUploadDialogOpen(false)}
+        onUploadComplete={handleUploadComplete}
+      />
     </Box>
   );
 };

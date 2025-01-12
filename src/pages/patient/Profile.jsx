@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { AuthContext } from '../contexts/AuthContext.jsx';
-import { getProfile, updateProfile } from '../services/api';
+import { AuthContext } from '../../contexts/AuthContext.jsx';
+import { getProfile, updateProfile } from '../../services/api.js';
 import {
   Box,
   Container,

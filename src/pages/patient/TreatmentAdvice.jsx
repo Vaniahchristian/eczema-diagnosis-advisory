@@ -1,7 +1,7 @@
 // src/pages/TreatmentAdvice.jsx
 import React from 'react';
 import { Container, Grid, Paper, Typography, Box } from '@mui/material';
-import TreatmentTracker from '../components/TreatmentTracker';
+import TreatmentTracker from '../../components/TreatmentTracker';
 
 const TreatmentAdvice = ({ treatment }) => {
   return (

@@ -1,5 +1,5 @@
-import React, { useState, useContext } from 'react';
-import { Outlet, useNavigate, Navigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
   Drawer,
@@ -16,6 +16,8 @@ import {
   Menu,
   MenuItem,
   Avatar,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -25,12 +27,12 @@ import {
   Message as MessageIcon,
   Notifications as NotificationsIcon,
   Settings as SettingsIcon,
-  AccountCircle,
   ExitToApp as LogoutIcon,
 } from '@mui/icons-material';
-import { AuthContext } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useWebSocket } from '../contexts/WebSocketContext';
 
-const drawerWidth = 240;
+const drawerWidth = 280;
 
 const menuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/doctor/dashboard' },
@@ -42,18 +44,18 @@ const menuItems = [
 ];
 
 const DoctorLayout = () => {
+  const theme = useTheme();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user, logout } = useAuth();
+  const { notifications, messages } = useWebSocket();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
-  const { user, logout } = useContext(AuthContext);
-  const navigate = useNavigate();
 
-  // Redirect if not logged in or not a doctor
-  if (!user) {
-    return <Navigate to="/login" />;
-  }
-  if (user.role !== 'doctor') {
-    return <Navigate to="/dashboard" />;
-  }
+  const unreadNotifications = notifications.filter(n => !n.read).length;
+  const unreadMessages = Object.values(messages).flat().filter(m => !m.read && m.sender !== user?.id).length;
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -70,54 +72,84 @@ const DoctorLayout = () => {
   const handleLogout = async () => {
     handleMenuClose();
     await logout();
-    navigate('/login');
   };
 
   const drawer = (
-    <div>
-      <Toolbar>
-        <Typography variant="h6" noWrap>
-          Doctor Portal
-        </Typography>
-      </Toolbar>
+    <Box>
+      <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Avatar sx={{ bgcolor: theme.palette.primary.main }}>
+          {user?.firstName?.[0] || 'D'}
+        </Avatar>
+        <Box>
+          <Typography variant="subtitle1">
+            Dr. {user?.firstName} {user?.lastName}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {user?.specialization || 'Dermatologist'}
+          </Typography>
+        </Box>
+      </Box>
       <Divider />
       <List>
         {menuItems.map((item) => (
           <ListItem
             button
             key={item.text}
+            selected={location.pathname === item.path}
             onClick={() => {
               navigate(item.path);
-              setMobileOpen(false);
+              if (isMobile) setMobileOpen(false);
+            }}
+            sx={{
+              '&.Mui-selected': {
+                backgroundColor: theme.palette.primary.light,
+                '&:hover': {
+                  backgroundColor: theme.palette.primary.light,
+                },
+              },
             }}
           >
             <ListItemIcon>
               {item.text === 'Messages' ? (
-                <Badge badgeContent={3} color="error">
+                <Badge badgeContent={unreadMessages} color="error">
                   {item.icon}
                 </Badge>
               ) : item.text === 'Notifications' ? (
-                <Badge badgeContent={5} color="error">
+                <Badge badgeContent={unreadNotifications} color="error">
                   {item.icon}
                 </Badge>
               ) : (
                 item.icon
               )}
             </ListItemIcon>
-            <ListItemText primary={item.text} />
+            <ListItemText 
+              primary={item.text}
+              primaryTypographyProps={{
+                fontWeight: location.pathname === item.path ? 'bold' : 'normal',
+              }}
+            />
           </ListItem>
         ))}
       </List>
-    </div>
+      <Divider />
+      <Box sx={{ p: 2 }}>
+        <Typography variant="caption" color="text.secondary">
+          2025 Eczema Care. All rights reserved.
+        </Typography>
+      </Box>
+    </Box>
   );
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       <AppBar
         position="fixed"
         sx={{
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          ml: { sm: `${drawerWidth}px` },
+          width: { md: `calc(100% - ${drawerWidth}px)` },
+          ml: { md: `${drawerWidth}px` },
+          bgcolor: 'background.paper',
+          color: 'text.primary',
+          boxShadow: 1,
         }}
       >
         <Toolbar>
@@ -126,47 +158,49 @@ const DoctorLayout = () => {
             aria-label="open drawer"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: 'none' } }}
+            sx={{ mr: 2, display: { md: 'none' } }}
           >
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            Eczema Diagnosis Advisory System
+            {menuItems.find(item => item.path === location.pathname)?.text || 'Doctor Portal'}
           </Typography>
           <IconButton
             size="large"
             edge="end"
             aria-label="account menu"
-            aria-controls="menu-appbar"
-            aria-haspopup="true"
             onClick={handleMenuClick}
-            color="inherit"
           >
-            <Avatar sx={{ bgcolor: 'secondary.main' }}>
+            <Avatar sx={{ bgcolor: theme.palette.secondary.main }}>
               {user?.firstName?.[0] || 'D'}
             </Avatar>
           </IconButton>
           <Menu
-            id="menu-appbar"
             anchorEl={anchorEl}
-            anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'right',
-            }}
-            keepMounted
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
-            }}
             open={Boolean(anchorEl)}
             onClose={handleMenuClose}
+            onClick={handleMenuClose}
+            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
           >
-            <MenuItem onClick={() => { handleMenuClose(); navigate('/doctor/settings'); }}>
+            <MenuItem onClick={() => navigate('/doctor/profile')}>
+              <ListItemIcon>
+                <Avatar sx={{ width: 24, height: 24 }}>
+                  {user?.firstName?.[0] || 'D'}
+                </Avatar>
+              </ListItemIcon>
+              <ListItemText 
+                primary="My Profile"
+                secondary={user?.email}
+              />
+            </MenuItem>
+            <MenuItem onClick={() => navigate('/doctor/settings')}>
               <ListItemIcon>
                 <SettingsIcon fontSize="small" />
               </ListItemIcon>
               Settings
             </MenuItem>
+            <Divider />
             <MenuItem onClick={handleLogout}>
               <ListItemIcon>
                 <LogoutIcon fontSize="small" />
@@ -178,18 +212,22 @@ const DoctorLayout = () => {
       </AppBar>
       <Box
         component="nav"
-        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+        sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
       >
         <Drawer
           variant="temporary"
           open={mobileOpen}
           onClose={handleDrawerToggle}
           ModalProps={{
-            keepMounted: true, // Better open performance on mobile.
+            keepMounted: true,
           }}
           sx={{
-            display: { xs: 'block', sm: 'none' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            display: { xs: 'block', md: 'none' },
+            '& .MuiDrawer-paper': { 
+              boxSizing: 'border-box',
+              width: drawerWidth,
+              bgcolor: 'background.default',
+            },
           }}
         >
           {drawer}
@@ -197,8 +235,13 @@ const DoctorLayout = () => {
         <Drawer
           variant="permanent"
           sx={{
-            display: { xs: 'none', sm: 'block' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            display: { xs: 'none', md: 'block' },
+            '& .MuiDrawer-paper': { 
+              boxSizing: 'border-box',
+              width: drawerWidth,
+              bgcolor: 'background.default',
+              borderRight: `1px solid ${theme.palette.divider}`,
+            },
           }}
           open
         >
@@ -210,8 +253,10 @@ const DoctorLayout = () => {
         sx={{
           flexGrow: 1,
           p: 3,
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          mt: 8,
+          width: { md: `calc(100% - ${drawerWidth}px)` },
+          minHeight: '100vh',
+          bgcolor: 'background.default',
+          mt: { xs: 7, sm: 8 },
         }}
       >
         <Outlet />

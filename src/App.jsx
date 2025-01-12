@@ -1,109 +1,94 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
+import { WebSocketProvider } from "./contexts/WebSocketContext.jsx";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
+
+// Import Theme
+import theme from "./theme";
 
 // Import Layouts
 import PublicLayout from "./components/PublicLayout.jsx";
 import PrivateLayout from "./components/PrivateLayout.jsx";
 import DoctorLayout from "./layouts/DoctorLayout";
+import PatientLayout from "./layouts/PatientLayout.jsx";
+import PrivateRoute from "./components/PrivateRoute.jsx";
 
-// Import Pages
+// Import Public Pages
 import LoginSignUp from "./pages/LoginSignUp.jsx";
-import Dashboard from "./pages/Dashboard.jsx";
-import Profile from "./pages/Profile.jsx";
-import ImageUpload from "./pages/ImageUpload.jsx";
-import DiagnosisResults from "./pages/DiagnosisResults.jsx";
-import TreatmentAdvice from "./pages/TreatmentAdvice.jsx";
-import ConsultDoctor from "./pages/ConsultDoctor.jsx";
-import ConsultationRoom from "./pages/ConsultationRoom.jsx";
-import EducationContent from "./pages/EducationContent.jsx";
-import FAQ from "./pages/FAQ.jsx";
-import AboutUs from "./pages/AboutUs.jsx";
 import NotFound from "./pages/NotFound.jsx";
+
+// Import Patient Pages
+import PatientDashboard from "./pages/patient/Dashboard.jsx";
+import ImageUpload from "./pages/patient/ImageUpload.jsx";
+import DiagnosisResults from "./pages/patient/DiagnosisResults.jsx";
+import Appointments from "./pages/patient/Appointments.jsx";
+import MessagingCenter from "./pages/patient/MessagingCenter.jsx";
+import EducationContent from "./pages/patient/EducationContent.jsx";
+import Settings from "./pages/patient/Settings.jsx";
+import Profile from "./pages/patient/Profile.jsx";
+import Notifications from "./pages/patient/Notifications.jsx";
+import FAQ from "./pages/patient/FAQ.jsx";
+import AboutUs from "./pages/patient/AboutUs.jsx";
+import ConsultationRoom from "./pages/patient/ConsultationRoom.jsx";
+import TreatmentAdvice from "./pages/patient/TreatmentAdvice.jsx";
 
 // Import Doctor Pages
 import DoctorDashboard from "./pages/doctor/DoctorDashboard";
-import PatientList from "./pages/doctor/PatientList";
-import PatientDetail from "./pages/doctor/PatientDetail";
-import AppointmentsPage from "./pages/doctor/AppointmentsPage";
-import MessagingCenter from "./pages/doctor/MessagingCenter";
-import NotificationsPage from "./pages/doctor/NotificationsPage";
-import SettingsPage from "./pages/doctor/SettingsPage";
-
-// Import Components
-import { createTheme } from '@mui/material/styles';
-
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#2196f3',
-      light: '#64b5f6',
-      dark: '#1976d2',
-    },
-    secondary: {
-      main: '#f50057',
-      light: '#ff4081',
-      dark: '#c51162',
-    },
-    background: {
-      default: '#f5f5f5',
-      paper: '#ffffff',
-    },
-  },
-  typography: {
-    fontFamily: [
-      '-apple-system',
-      'BlinkMacSystemFont',
-      '"Segoe UI"',
-      'Roboto',
-      '"Helvetica Neue"',
-      'Arial',
-      'sans-serif',
-    ].join(','),
-  },
-});
+import DoctorAppointments from "./pages/doctor/AppointmentsPage";
+import DoctorMessaging from "./pages/doctor/MessagingCenter";
+import DoctorNotifications from "./pages/doctor/NotificationsPage";
+import DoctorSettings from "./pages/doctor/SettingsPage";
 
 const App = () => {
   return (
     <ThemeProvider theme={theme}>
       <AuthProvider>
-        <CssBaseline />
-        <Routes>
-          {/* Public Routes */}
-          <Route element={<PublicLayout />}>
-            <Route path="/login" element={<LoginSignUp />} />
-            <Route path="/" element={<Navigate to="/login" replace />} />
-          </Route>
+        <WebSocketProvider>
+          <CssBaseline />
+          <Routes>
+            {/* Public Routes */}
+            <Route element={<PublicLayout />}>
+              <Route path="/login" element={<LoginSignUp />} />
+              <Route path="/register" element={<LoginSignUp />} />
+              <Route path="/" element={<Navigate to="/login" replace />} />
+              <Route path="/about" element={<AboutUs />} />
+              <Route path="/faq" element={<FAQ />} />
+            </Route>
 
-          {/* Doctor Routes */}
-          <Route path="/doctor" element={<DoctorLayout />}>
-            <Route index element={<Navigate to="/doctor/dashboard" replace />} />
-            <Route path="dashboard" element={<DoctorDashboard />} />
-            <Route path="patients" element={<PatientList />} />
-            <Route path="patients/:id" element={<PatientDetail />} />
-            <Route path="appointments" element={<AppointmentsPage />} />
-            <Route path="messages" element={<MessagingCenter />} />
-            <Route path="notifications" element={<NotificationsPage />} />
-            <Route path="settings" element={<SettingsPage />} />
-          </Route>
+            {/* Patient Routes */}
+            <Route element={<PrivateRoute allowedRoles={['patient']} />}>
+              <Route element={<PatientLayout />}>
+                <Route path="/patient/dashboard" element={<PatientDashboard />} />
+                <Route path="/patient/upload" element={<ImageUpload />} />
+                <Route path="/patient/results" element={<DiagnosisResults />} />
+                <Route path="/patient/appointments" element={<Appointments />} />
+                <Route path="/patient/messages" element={<MessagingCenter />} />
+                <Route path="/patient/education" element={<EducationContent />} />
+                <Route path="/patient/settings" element={<Settings />} />
+                <Route path="/patient/profile" element={<Profile />} />
+                <Route path="/patient/notifications" element={<Notifications />} />
+                <Route path="/patient/consultation/:id" element={<ConsultationRoom />} />
+                <Route path="/patient/treatment/:id" element={<TreatmentAdvice />} />
+              </Route>
+            </Route>
 
-          {/* Private Routes */}
-          <Route element={<PrivateLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/image-upload" element={<ImageUpload />} />
-            <Route path="/diagnosis/:id" element={<DiagnosisResults />} />
-            <Route path="/treatment/:id" element={<TreatmentAdvice />} />
-            <Route path="/consult" element={<ConsultDoctor />} />
-            <Route path="/consultation/:id" element={<ConsultationRoom />} />
-            <Route path="/education" element={<EducationContent />} />
-            <Route path="/faq" element={<FAQ />} />
-            <Route path="/about" element={<AboutUs />} />
+            {/* Doctor Routes */}
+            <Route element={<PrivateRoute allowedRoles={['doctor']} />}>
+              <Route element={<DoctorLayout />}>
+                <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
+                <Route path="/doctor/appointments" element={<DoctorAppointments />} />
+                <Route path="/doctor/messages" element={<DoctorMessaging />} />
+                <Route path="/doctor/notifications" element={<DoctorNotifications />} />
+                <Route path="/doctor/settings" element={<DoctorSettings />} />
+              </Route>
+            </Route>
+
+            {/* Catch-all Route */}
             <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
+          </Routes>
+        </WebSocketProvider>
       </AuthProvider>
     </ThemeProvider>
   );

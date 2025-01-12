@@ -1,10 +1,19 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import { getProfile } from '../services/api';
 
 export const AuthContext = createContext(null);
+
+// Custom hook for using auth context
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
 
 // Safe JSON parse function
 const safeJSONParse = (data) => {
@@ -84,7 +93,15 @@ export const AuthProvider = ({ children }) => {
       if (refreshToken) {
         localStorage.setItem('refreshToken', refreshToken);
       }
-      navigate('/dashboard');
+      
+      // Navigate based on user role
+      if (userData.role === 'patient') {
+        navigate('/patient/dashboard');
+      } else if (userData.role === 'doctor') {
+        navigate('/doctor/dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (error) {
       console.error('Error during login:', error);
       setError(error.message);
@@ -93,48 +110,48 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    try {
-      setUser(null);
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('isAuthenticated');
-      navigate('/login');
-    } catch (error) {
-      console.error('Error during logout:', error);
-      setError(error.message);
-    }
+    setUser(null);
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('isAuthenticated');
+    navigate('/login');
   };
 
-  const updateUser = (userData) => {
-    try {
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-    } catch (error) {
-      console.error('Error updating user:', error);
-      setError(error.message);
+  const updateUser = (updates) => {
+    setUser(prev => ({
+      ...prev,
+      ...updates
+    }));
+    const storedUser = safeJSONParse(localStorage.getItem('user'));
+    if (storedUser) {
+      localStorage.setItem('user', JSON.stringify({
+        ...storedUser,
+        ...updates
+      }));
     }
   };
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <CircularProgress />
       </Box>
     );
   }
 
+  const value = {
+    user,
+    loading,
+    error,
+    login,
+    logout,
+    updateUser,
+    isAuthenticated: !!user,
+  };
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        login,
-        logout,
-        updateUser,
-        error,
-        isAuthenticated: !!user,
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

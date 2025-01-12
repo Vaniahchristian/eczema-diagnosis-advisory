@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../contexts/AuthContext.jsx';
+import { AuthContext } from '../../contexts/AuthContext.jsx';
 
 const DoctorInteraction = () => {
   const { user, isAuthenticated } = useContext(AuthContext); // Access user and authentication status from context

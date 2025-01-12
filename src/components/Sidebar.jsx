@@ -1,135 +1,164 @@
 // src/components/Sidebar.jsx
-import React, { useState } from "react";
-import { 
-  FaChevronLeft, 
-  FaChevronRight, 
-  FaUserCircle, 
-  FaTachometerAlt, 
-  FaImage, 
-  FaClipboardCheck,
-  FaInfoCircle, 
-  FaStethoscope, 
-  FaBook 
-} from "react-icons/fa";
-import SidebarContext from "../contexts/SidebarContext";
-import SidebarItem from "./SidebarItem";
+import React, { useContext } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import {
+  Box,
+  Drawer,
+  List,
+  Typography,
+  Divider,
+  IconButton,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+} from '@mui/material';
+import {
+  Dashboard as DashboardIcon,
+  PhotoCamera as PhotoCameraIcon,
+  Message as MessageIcon,
+  School as SchoolIcon,
+  Assessment as AssessmentIcon,
+  QuestionAnswer as QuestionAnswerIcon,
+  Info as InfoIcon,
+  Person as PersonIcon,
+  Logout as LogoutIcon,
+} from '@mui/icons-material';
+import { AuthContext } from '../contexts/AuthContext.jsx';
+
+const drawerWidth = 240;
+
+const menuItems = [
+  { path: '/dashboard', label: 'Dashboard', icon: <DashboardIcon /> },
+  { path: '/image-upload', label: 'New Diagnosis', icon: <PhotoCameraIcon /> },
+  { path: '/consult', label: 'Consult Doctor', icon: <MessageIcon /> },
+  { path: '/education', label: 'Education', icon: <SchoolIcon /> },
+  { path: '/treatment/history', label: 'Treatment History', icon: <AssessmentIcon /> },
+  { path: '/faq', label: 'FAQ', icon: <QuestionAnswerIcon /> },
+  { path: '/about', label: 'About Us', icon: <InfoIcon /> },
+];
 
 const Sidebar = () => {
-  const [expanded, setExpanded] = useState(true);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { logout, user } = useContext(AuthContext);
 
-  const toggleSidebar = () => setExpanded((prev) => !prev);
+  const handleNavigation = (path) => {
+    navigate(path);
+  };
 
-  // Placeholder user data
-  const user = {
-    name: "John Doe",
-    email: "johndoe@gmail.com",
-    avatar: "", // Optional: URL to user's avatar
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
   return (
-    <SidebarContext.Provider value={{ expanded, toggleSidebar }}>
-      <aside
-        className={`h-screen bg-white dark:bg-gray-800 border-r shadow-sm flex flex-col transition-all duration-300 ${
-          expanded ? "w-64" : "w-20"
-        }`}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between p-1">
-          {/* Logo */}
-          
-          {/* Toggle Button */}
-          <button
-            onClick={toggleSidebar}
-            className="p-2 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-300"
-            aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
-          >
-            {expanded ? <FaChevronLeft /> : <FaChevronRight />}
-          </button>
-        </div>
+    <Drawer
+      variant="permanent"
+      sx={{
+        width: drawerWidth,
+        flexShrink: 0,
+        '& .MuiDrawer-paper': {
+          width: drawerWidth,
+          boxSizing: 'border-box',
+          bgcolor: 'background.paper',
+          borderRight: '1px solid rgba(0, 0, 0, 0.12)',
+        },
+      }}
+    >
+      <Box sx={{ overflow: 'auto' }}>
+        {/* App Title */}
+        <Box sx={{ p: 2, textAlign: 'center' }}>
+          <Typography variant="h6" noWrap component="div" color="primary">
+            Eczema Advisor
+          </Typography>
+        </Box>
 
-        {/* Navigation Items */}
-        <nav className="flex-1 px-2">
-          <ul className="mt-4">
-            {/* Dashboard */}
-            <SidebarItem
-              icon={<FaTachometerAlt />}
-              label="Dashboard"
-              to="/dashboard"
-            />
+        <Divider />
 
-            {/* Image Upload */}
-            <SidebarItem
-              icon={<FaImage />}
-              label="Image Upload"
-              to="/image-upload"
-            />
+        {/* User Profile Section */}
+        <Box sx={{ p: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+            <IconButton
+              sx={{
+                width: 40,
+                height: 40,
+                bgcolor: 'primary.main',
+                color: 'white',
+                '&:hover': { bgcolor: 'primary.dark' },
+              }}
+              onClick={() => navigate('/profile')}
+            >
+              <PersonIcon />
+            </IconButton>
+            <Box sx={{ ml: 2 }}>
+              <Typography variant="subtitle2" noWrap>
+                {user?.firstName} {user?.lastName}
+              </Typography>
+              <Typography variant="caption" color="text.secondary" noWrap>
+                {user?.email}
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
 
-            {/* Diagnosis Results */}
-            <SidebarItem
-              icon={<FaClipboardCheck />}
-              label="Diagnosis Results"
-              to="/diagnosis-results"
-             // alert={true} // Example: Show alert if needed
-            />
+        <Divider />
 
-            {/* Treatment Advice */}
-            <SidebarItem
-              icon={<FaStethoscope />}
-              label="Treatment Advice"
-              to="/treatment-advice"
-              //alert={true} // Example: Show alert if needed
-            />
+        {/* Navigation Menu */}
+        <List>
+          {menuItems.map((item) => (
+            <ListItem key={item.path} disablePadding>
+              <ListItemButton
+                selected={location.pathname === item.path}
+                onClick={() => handleNavigation(item.path)}
+                sx={{
+                  '&.Mui-selected': {
+                    bgcolor: 'primary.light',
+                    '&:hover': {
+                      bgcolor: 'primary.light',
+                    },
+                  },
+                }}
+              >
+                <ListItemIcon
+                  sx={{
+                    color: location.pathname === item.path ? 'primary.main' : 'inherit',
+                  }}
+                >
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText
+                  primary={item.label}
+                  sx={{
+                    '& .MuiTypography-root': {
+                      color: location.pathname === item.path ? 'primary.main' : 'inherit',
+                      fontWeight: location.pathname === item.path ? 'bold' : 'normal',
+                    },
+                  }}
+                />
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
 
-            {/* Treatment Advice */}
-            <SidebarItem
-              icon={<FaStethoscope />}
-              label="Consult a Doctor"
-              to="/doctor"
-              //alert={true} // Example: Show alert if needed
-            />
+        <Divider />
 
-            {/* Education Content */}
-            <SidebarItem
-              icon={<FaBook />}
-              label="Education Content"
-              to="/education-content"
-            />
-            
-            {/* About Us */}
-            <SidebarItem
-              icon={<FaInfoCircle />}
-              label="About Us"
-              to="/about"
-            />
-          </ul>
-        </nav>
-
-        {/* User Info Footer */}
-        <div className="border-t p-4 flex items-center">
-          {user.avatar ? (
-            <img
-              src={user.avatar}
-              alt={`${user.name}'s Avatar`}
-              className="w-10 h-10 rounded-full"
-            />
-          ) : (
-            <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-              <FaUserCircle className="text-gray-600" />
-            </div>
-          )}
-          <div
-            className={`flex items-center ml-3 transition-all duration-300 ${
-              expanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"
-            }`}
-          >
-            <div>
-              <h4 className="font-semibold text-gray-800 dark:text-gray-200">{user.name}</h4>
-              <span className="text-sm text-gray-600 dark:text-gray-400">{user.email}</span>
-            </div>
-          </div>
-        </div>
-      </aside>
-    </SidebarContext.Provider>
+        {/* Logout Button */}
+        <List>
+          <ListItem disablePadding>
+            <ListItemButton onClick={handleLogout}>
+              <ListItemIcon>
+                <LogoutIcon color="error" />
+              </ListItemIcon>
+              <ListItemText
+                primary="Logout"
+                sx={{ color: 'error.main' }}
+              />
+            </ListItemButton>
+          </ListItem>
+        </List>
+      </Box>
+    </Drawer>
   );
 };
 

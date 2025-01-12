@@ -1,52 +1,199 @@
-// src/pages/ImageUpload.jsx
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Box,
+  Button,
+  Typography,
+  Paper,
+  CircularProgress,
+  Alert,
+  IconButton,
+  Grid,
+} from '@mui/material';
+import { PhotoCamera, Close } from '@mui/icons-material';
 
-const ImageUpload = ({ onImageUpload }) => {
-  const [image, setImage] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
+const ImageUpload = () => {
+  const navigate = useNavigate();
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleImageChange = (e) => {
-    setError(null);
-    const file = e.target.files[0];
+  const handleImageSelect = (event) => {
+    const file = event.target.files[0];
     if (file) {
-      // Validate file type
-      const validTypes = ["image/jpeg", "image/png", "image/gif"];
-      if (!validTypes.includes(file.type)) {
-        setError("Unsupported file type. Please upload a JPEG, PNG, or GIF image.");
+      if (file.size > 5 * 1024 * 1024) {
+        setError('File size should not exceed 5MB');
         return;
       }
 
-      // Validate file size (e.g., max 5MB)
-      const maxSize = 5 * 1024 * 1024; // 5MB
-      if (file.size > maxSize) {
-        setError("File size exceeds 5MB. Please upload a smaller image.");
+      if (!file.type.startsWith('image/')) {
+        setError('Please select an image file');
         return;
       }
 
-      setImage(file);
-      setPreviewUrl(URL.createObjectURL(file));
-      onImageUpload(file);
+      setSelectedImage(file);
+      setPreview(URL.createObjectURL(file));
+      setError(null);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null);
+    setPreview(null);
+    setError(null);
+  };
+
+  const handleAnalyze = async () => {
+    if (!selectedImage) {
+      setError('Please select an image first');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Dummy analysis result
+      const analysisId = 'analysis_' + Math.random().toString(36).substr(2, 9);
+      
+      // Navigate to results page with the analysis ID
+      navigate('/diagnosis/' + analysisId);
+    } catch (err) {
+      setError('Failed to analyze image. Please try again.');
+      setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-      <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Upload Image for Eczema Diagnosis</h2>
-      <input
-        type="file"
-        accept="image/*"
-        onChange={handleImageChange}
-        className="w-full mb-4 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-teal-500 file:text-white hover:file:bg-teal-600 dark:file:bg-teal-700 dark:hover:file:bg-teal-600"
-        aria-label="Upload Image"
-      />
-      {previewUrl && (
-        <div className="mb-4">
-          <img src={previewUrl} alt="Preview" className="w-full h-auto rounded-md" />
-        </div>
-      )}
-      {error && <p className="text-red-500">{error}</p>}
-    </div>
+    <Box>
+      <Typography variant="h4" gutterBottom>
+        Eczema Image Analysis
+      </Typography>
+
+      <Typography variant="body1" paragraph>
+        Upload a clear photo of the affected area for AI-powered analysis. Make sure the image is well-lit
+        and in focus for the most accurate results.
+      </Typography>
+
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={6}>
+          <Paper
+            sx={{
+              p: 3,
+              border: '2px dashed',
+              borderColor: 'primary.main',
+              textAlign: 'center',
+              position: 'relative',
+            }}
+          >
+            {!preview ? (
+              <Box>
+                <input
+                  accept="image/*"
+                  type="file"
+                  id="image-upload"
+                  onChange={handleImageSelect}
+                  style={{ display: 'none' }}
+                />
+                <label htmlFor="image-upload">
+                  <Button
+                    variant="contained"
+                    component="span"
+                    startIcon={<PhotoCamera />}
+                    disabled={loading}
+                  >
+                    Select Image
+                  </Button>
+                </label>
+                <Typography variant="body2" sx={{ mt: 2, color: 'text.secondary' }}>
+                  Supported formats: JPG, PNG (max 5MB)
+                </Typography>
+              </Box>
+            ) : (
+              <Box sx={{ position: 'relative' }}>
+                <IconButton
+                  sx={{ position: 'absolute', top: 0, right: 0, zIndex: 1 }}
+                  onClick={handleRemoveImage}
+                  color="primary"
+                >
+                  <Close />
+                </IconButton>
+                <img
+                  src={preview}
+                  alt="Preview"
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: '300px',
+                    objectFit: 'contain',
+                  }}
+                />
+              </Box>
+            )}
+          </Paper>
+
+          {error && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {error}
+            </Alert>
+          )}
+
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            size="large"
+            onClick={handleAnalyze}
+            disabled={!selectedImage || loading}
+            sx={{ mt: 3 }}
+          >
+            {loading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              'Analyze Image'
+            )}
+          </Button>
+        </Grid>
+
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Tips for Better Results
+            </Typography>
+            <ul style={{ paddingLeft: '20px' }}>
+              <li>
+                <Typography paragraph>
+                  Ensure good lighting conditions - natural daylight works best
+                </Typography>
+              </li>
+              <li>
+                <Typography paragraph>
+                  Keep the camera steady and in focus
+                </Typography>
+              </li>
+              <li>
+                <Typography paragraph>
+                  Include only the affected area in the frame
+                </Typography>
+              </li>
+              <li>
+                <Typography paragraph>
+                  Avoid using flash as it may affect color accuracy
+                </Typography>
+              </li>
+              <li>
+                <Typography>
+                  Take multiple photos if the affected area is large
+                </Typography>
+              </li>
+            </ul>
+          </Paper>
+        </Grid>
+      </Grid>
+    </Box>
   );
 };
 

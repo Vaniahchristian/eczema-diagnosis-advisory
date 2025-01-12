@@ -1,16 +1,47 @@
 // src/pages/TreatmentAdvice.jsx
 import React from 'react';
+import { Container, Grid, Paper, Typography, Box } from '@mui/material';
+import TreatmentTracker from '../components/TreatmentTracker';
 
 const TreatmentAdvice = ({ treatment }) => {
   return (
-    <div className="max-w-lg mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-      <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Treatment Advice</h2>
-      {treatment ? (
-        <p className="text-gray-700 dark:text-gray-300">{treatment}</p>
-      ) : (
-        <p className="text-gray-500 dark:text-gray-400">No treatment advice available. Please upload an image.</p>
-      )}
-    </div>
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <Paper sx={{ p: 3, mb: 3 }}>
+            <Typography variant="h4" gutterBottom>
+              Treatment Management
+            </Typography>
+            <Typography variant="body1" paragraph>
+              Track your eczema treatments, monitor symptoms, and record your progress over time.
+              This information will help both you and your healthcare provider make informed decisions
+              about your treatment plan.
+            </Typography>
+          </Paper>
+        </Grid>
+
+        <Grid item xs={12}>
+          <Paper sx={{ p: 3, mb: 3 }}>
+            <Typography variant="h5" gutterBottom>
+              Treatment Advice
+            </Typography>
+            {treatment ? (
+              <Typography variant="body1" paragraph>
+                {treatment}
+              </Typography>
+            ) : (
+              <Typography variant="body1" paragraph>
+                No treatment advice available. Please upload an image.
+              </Typography>
+            )}
+          </Paper>
+        </Grid>
+
+        <Grid item xs={12}>
+          <TreatmentTracker />
+        </Grid>
+      </Grid>
+    </Container>
   );
 };
 

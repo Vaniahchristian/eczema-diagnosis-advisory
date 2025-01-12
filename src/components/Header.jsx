@@ -1,11 +1,59 @@
-import React, { useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { FaUserCircle, FaBell, FaQuestionCircle } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
-import { AuthContext } from '../contexts/AuthContext';
+import { AuthContext } from '../contexts/AuthContext.jsx';
+import {
+  AppBar,
+  Toolbar,
+  IconButton,
+  Badge,
+  Menu,
+  MenuItem,
+  Typography,
+  Box,
+} from '@mui/material';
+import {
+  Notifications as NotificationsIcon,
+  Settings as SettingsIcon,
+} from '@mui/icons-material';
+
+// Dummy notifications data
+const dummyNotifications = [
+  {
+    id: 1,
+    message: 'Your last diagnosis report is ready',
+    time: '5 minutes ago',
+  },
+  {
+    id: 2,
+    message: 'Dr. Smith has responded to your consultation',
+    time: '1 hour ago',
+  },
+  {
+    id: 3,
+    message: 'New treatment recommendation available',
+    time: '2 hours ago',
+  },
+];
 
 const Header = () => {
   const { isAuthenticated, logout } = useContext(AuthContext);
   const navigate = useNavigate();
+  const [notificationsAnchor, setNotificationsAnchor] = useState(null);
+  const [settingsAnchor, setSettingsAnchor] = useState(null);
+
+  const handleNotificationsClick = (event) => {
+    setNotificationsAnchor(event.currentTarget);
+  };
+
+  const handleSettingsClick = (event) => {
+    setSettingsAnchor(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setNotificationsAnchor(null);
+    setSettingsAnchor(null);
+  };
 
   const handleLogout = () => {
     logout();
@@ -13,9 +61,19 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-white shadow-lg border-b border-gray-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-        
+    <AppBar
+      position="sticky"
+      color="default"
+      elevation={0}
+      sx={{
+        bgcolor: 'background.paper',
+        borderBottom: '1px solid',
+        borderColor: 'divider',
+      }}
+    >
+      <Toolbar>
+        <Box sx={{ flexGrow: 1 }} />
+
         {/* Logo / Branding */}
         <div className="flex items-center space-x-2">
           <img
@@ -27,20 +85,78 @@ const Header = () => {
             Eczema Advisory
           </span>
         </div>
-        
-        {/* Quick Access Icons */}
-        <div className="hidden md:flex space-x-6 items-center">
-          {/* Notifications */}
-          <Link to= "/notifications" className="text-gray-600 hover:text-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-300">
-            <FaBell className="w-5 h-5" aria-label="Notifications" />
-          </Link>
 
-          {/* Help / Support */}
-          <Link to="/faq" className="text-gray-600 hover:text-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-300">
-            <FaQuestionCircle className="w-5 h-5" aria-label="Help and Support" />
-          </Link>
-        </div>
-        
+        {/* Notifications */}
+        <IconButton
+          color="inherit"
+          onClick={handleNotificationsClick}
+          sx={{ ml: 1 }}
+        >
+          <Badge badgeContent={dummyNotifications.length} color="error">
+            <NotificationsIcon />
+          </Badge>
+        </IconButton>
+        <Menu
+          anchorEl={notificationsAnchor}
+          open={Boolean(notificationsAnchor)}
+          onClose={handleClose}
+          PaperProps={{
+            elevation: 0,
+            sx: {
+              overflow: 'visible',
+              filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
+              mt: 1.5,
+              '& .MuiAvatar-root': {
+                width: 32,
+                height: 32,
+                ml: -0.5,
+                mr: 1,
+              },
+            },
+          }}
+          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        >
+          {dummyNotifications.map((notification) => (
+            <MenuItem key={notification.id} onClick={handleClose}>
+              <Box>
+                <Typography variant="body1">{notification.message}</Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {notification.time}
+                </Typography>
+              </Box>
+            </MenuItem>
+          ))}
+        </Menu>
+
+        {/* Settings */}
+        <IconButton
+          color="inherit"
+          onClick={handleSettingsClick}
+          sx={{ ml: 1 }}
+        >
+          <SettingsIcon />
+        </IconButton>
+        <Menu
+          anchorEl={settingsAnchor}
+          open={Boolean(settingsAnchor)}
+          onClose={handleClose}
+          PaperProps={{
+            elevation: 0,
+            sx: {
+              overflow: 'visible',
+              filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
+              mt: 1.5,
+            },
+          }}
+          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        >
+          <MenuItem onClick={handleClose}>Profile Settings</MenuItem>
+          <MenuItem onClick={handleClose}>Notification Settings</MenuItem>
+          <MenuItem onClick={handleClose}>Privacy Settings</MenuItem>
+        </Menu>
+
         {/* User Actions */}
         <div className="flex items-center space-x-4">
           {isAuthenticated ? (
@@ -63,17 +179,8 @@ const Header = () => {
             </Link>
           )}
         </div>
-        
-        {/* Mobile Menu Button */}
-        <div className="md:hidden flex items-center">
-          <button className="text-gray-600 hover:text-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-300">
-            <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-        </div>
-      </div>
-    </header>
+      </Toolbar>
+    </AppBar>
   );
 };
 

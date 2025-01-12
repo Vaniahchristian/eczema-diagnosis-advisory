@@ -1,20 +1,32 @@
 import React, { useContext } from 'react';
-import { Outlet, Navigate } from 'react-router-dom';
-import { AuthContext } from '../contexts/AuthContext';
+import { Navigate, Outlet } from 'react-router-dom';
+import { Box, Container, Paper } from '@mui/material';
+import { AuthContext } from '../contexts/AuthContext.jsx';
 
 const PublicLayout = () => {
   const { isAuthenticated } = useContext(AuthContext);
 
-  // If the user is authenticated, redirect to the dashboard
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
 
   return (
-    // Public layout wrapper for unauthenticated pages
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <Outlet /> {/* Render nested public routes like login or signup */}
-    </div>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        bgcolor: 'background.default',
+        py: 3,
+      }}
+    >
+      <Container maxWidth="sm">
+        <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
+          <Outlet />
+        </Paper>
+      </Container>
+    </Box>
   );
 };
 

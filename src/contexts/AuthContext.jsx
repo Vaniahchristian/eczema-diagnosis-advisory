@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const token = localStorage.getItem('token');
       const refreshToken = localStorage.getItem('refreshToken');
-      
+
       if (!token || !refreshToken) {
         throw new Error('No valid session found');
       }
@@ -45,10 +45,13 @@ export const AuthProvider = ({ children }) => {
       if (response.user) {
         setUser(response.user);
         return true;
+      } else {
+        logout();
+        return false;
       }
-      return false;
     } catch (error) {
       console.error('Session validation error:', error);
+      logout();
       return false;
     }
   };
@@ -58,24 +61,23 @@ export const AuthProvider = ({ children }) => {
       try {
         setLoading(true);
         setError(null);
-        
+
         const storedUser = safeJSONParse(localStorage.getItem('user'));
         const token = localStorage.getItem('token');
         const refreshToken = localStorage.getItem('refreshToken');
-        
+
         if (storedUser && token && refreshToken) {
           const isValid = await validateSession();
           if (!isValid) {
-            // If session is invalid, clear everything
             logout();
+            setError('Your session has expired. Please log in again.');
           }
         } else {
-          // Clear potentially corrupted data
           logout();
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
-        setError(error.message);
+        setError('An error occurred during authentication.');
         logout();
       } finally {
         setLoading(false);
@@ -90,10 +92,9 @@ export const AuthProvider = ({ children }) => {
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('token', token);
-      if (refreshToken) {
-        localStorage.setItem('refreshToken', refreshToken);
-      }
-      
+      localStorage.setItem('refreshToken', refreshToken);
+      localStorage.setItem('isAuthenticated', 'true'); // Ensure consistent state
+
       // Navigate based on user role
       if (userData.role === 'patient') {
         navigate('/patient/dashboard');
@@ -111,30 +112,37 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('isAuthenticated');
+    localStorage.clear(); // Clear all localStorage data
     navigate('/login');
   };
 
   const updateUser = (updates) => {
-    setUser(prev => ({
+    setUser((prev) => ({
       ...prev,
-      ...updates
+      ...updates,
     }));
     const storedUser = safeJSONParse(localStorage.getItem('user'));
     if (storedUser) {
-      localStorage.setItem('user', JSON.stringify({
-        ...storedUser,
-        ...updates
-      }));
+      localStorage.setItem(
+        'user',
+        JSON.stringify({
+          ...storedUser,
+          ...updates,
+        })
+      );
     }
   };
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+        }}
+      >
         <CircularProgress />
       </Box>
     );
@@ -150,11 +158,7 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated: !!user,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export default AuthProvider;

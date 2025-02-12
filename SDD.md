@@ -1,210 +1,363 @@
+# BSE25-10
 # Eczema Diagnosis and Advisory System
-## Software Design Document
+# Software Design Document
+
+**Names:** NALUGYA MERISA, MUKISA VANIAH CHRISTIAN, AHEEBWOMUGISHA SASHA ANA, ACAN BRENDA  
+**Lab Section:** BSE25-10  
+**Workstation:** N/A  
+**Date:** 02/01/2025
+
+## Table of Contents
+1. [Introduction](#1-introduction)
+   1. [Purpose](#11-purpose)
+   2. [Scope](#12-scope)
+   3. [Overview](#13-overview)
+   4. [Reference Material](#14-reference-material)
+   5. [Definitions and Acronyms](#15-definitions-and-acronyms)
+2. [System Overview](#2-system-overview)
+3. [System Architecture](#3-system-architecture)
+   1. [Architectural Design](#31-architectural-design)
+   2. [Decomposition Description](#32-decomposition-description)
+   3. [Design Rationale](#33-design-rationale)
+4. [Data Design](#4-data-design)
+   1. [Data Description](#41-data-description)
+   2. [Data Dictionary](#42-data-dictionary)
+5. [Component Design](#5-component-design)
+6. [Human Interface Design](#6-human-interface-design)
+   1. [Overview of User Interface](#61-overview-of-user-interface)
+   2. [Screen Images](#62-screen-images)
+   3. [Screen Objects and Actions](#63-screen-objects-and-actions)
+7. [Requirements Matrix](#7-requirements-matrix)
+8. [Appendices](#8-appendices)
 
 ## 1. Introduction
 
-### 1.1 Overview
+### 1.1 Purpose
+This software design document describes the architecture and system design of the Eczema Diagnosis and Advisory System. The intended audience for this document includes:
+- Development team
+- Project stakeholders
+- Healthcare professionals
+- System maintainers
+- Quality assurance team
 
-The Eczema Diagnosis and Advisory System is a comprehensive platform designed to assist patients and doctors in diagnosing and managing eczema. The system utilizes machine learning algorithms to analyze images of skin conditions and provide accurate diagnoses and treatment recommendations.
+### 1.2 Scope
+The Eczema Diagnosis and Advisory System aims to assist patients in diagnosing and managing eczema through:
+- AI-powered image analysis
+- Treatment recommendations
+- Healthcare professional consultation
+- Patient education and monitoring
 
-### 1.2 Goals and Objectives
+**Goals:**
+- Facilitate accurate eczema diagnosis
+- Reduce treatment costs
+- Improve healthcare accessibility
+- Enable patient-doctor communication
 
-* Provide an accurate and efficient diagnosis of eczema
-* Offer personalized treatment recommendations
-* Facilitate communication between patients and doctors
-* Ensure data security and confidentiality
+**Objectives:**
+- Implement ML-based image analysis
+- Provide treatment recommendations
+- Enable appointment scheduling
+- Ensure data security and privacy
 
-## 2. System Architecture
+### 1.3 Overview
+This SDD is organized into eight main sections:
+1. Introduction - Document purpose and scope
+2. System Overview - General functionality description
+3. System Architecture - System structure and components
+4. Data Design - Data structures and organization
+5. Component Design - Detailed component descriptions
+6. Human Interface Design - UI/UX specifications
+7. Requirements Matrix - Requirements traceability
+8. Appendices - Supporting documentation
 
-### 2.1 Overview
+### 1.4 Reference Material
+1. IEEE 1016-2009 - Software Design Descriptions
+2. HIPAA Security Rule Requirements
+3. GDPR Technical Guidelines
+4. HL7 FHIR Standards for Healthcare Data Exchange
+5. TensorFlow Documentation for Image Analysis
 
-The system consists of the following components:
+### 1.5 Definitions and Acronyms
+- **API**: Application Programming Interface
+- **CRUD**: Create, Read, Update, Delete
+- **HIPAA**: Health Insurance Portability and Accountability Act
+- **JWT**: JSON Web Token
+- **ML**: Machine Learning
+- **REST**: Representational State Transfer
+- **UI/UX**: User Interface/User Experience
 
-* Frontend: React.js 18.0
-* Backend: Node.js 16.x
-* Databases: MySQL 8.0, MongoDB 5.0
-* ML: TensorFlow 2.x
-* Cloud: Google Cloud Platform
-* Storage: Google Cloud Storage
+## 2. System Overview
 
-### 2.2 Component Interactions
+### 2.1 System Context Diagram
 
-* The frontend interacts with the backend through RESTful APIs
-* The backend interacts with the databases to store and retrieve data
-* The ML model is integrated with the backend to analyze images and provide diagnoses
-* The cloud platform provides scalability and reliability
-
-## 3. Data Design
-
-### 3.1 Data Description
-
-#### 3.1.1 Data Flow and Processing
-
-##### User Data Management
-
-1. **Registration and Profile**
-   - Users register with email and password
-   - Profile creation with personal details
-   - Medical history submission
-   - Authentication details stored in MySQL
-   - Profile data encrypted using AES-256
-
-2. **Image Processing Workflow**
-   - **Image Upload**
-     - Direct upload from device
-     - Capture via device camera
-     - Supported formats: JPEG, PNG
-     - Maximum size: 10MB
-
-   - **Preprocessing**
-     - Image resizing to 224x224 pixels
-     - Normalization of pixel values
-     - Quality assessment
-     - Metadata extraction
-
-   - **Analysis and Diagnostic Output**
-     - ML model assessment
-     - Quality validation
-     - Confidence score generation
-     - Automatic resubmission request if quality insufficient
-
-   - **Post-processing**
-     - Diagnosis report generation
-     - Treatment recommendation compilation
-     - Storage of results
-
-3. **Data Storage Architecture**
-   - **User Data Storage**
-     - MySQL for structured data
-     - Encrypted at rest
-     - Regular backups
-   
-   - **Image Storage**
-     - Google Cloud Storage
-     - Original and processed versions
-     - Metadata in MongoDB
-   
-   - **Diagnostic Data**
-     - MongoDB for flexible schema
-     - Linked to user profiles
-     - Version controlled
-
-#### 3.1.2 Database Schema Design
-
-1. **Users Table (MySQL)**
-```sql
-CREATE TABLE users (
-    id UUID PRIMARY KEY,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    role ENUM('patient', 'doctor', 'admin') NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+```mermaid
+graph TD
+    A[Patient] -->|Upload Image| B[Eczema System]
+    C[Healthcare Provider] -->|Review & Comment| B
+    B -->|Store Data| D[Database]
+    B -->|Process Image| E[ML Model]
+    B -->|Store Images| F[Cloud Storage]
+    G[Admin] -->|Manage System| B
 ```
 
-2. **Patient Profiles (MySQL)**
-```sql
-CREATE TABLE patient_profiles (
-    id UUID PRIMARY KEY,
-    user_id UUID REFERENCES users(id),
-    name VARCHAR(255) NOT NULL,
-    date_of_birth DATE NOT NULL,
-    contact_number VARCHAR(20),
-    medical_history TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+### 2.2 System Dependencies
+
+1. External Services
+   - Google Cloud Platform
+   - TensorFlow Model Server
+   - OAuth 2.0 Authentication
+   - SMS Gateway for Notifications
+
+2. Third-Party Libraries
+   - React.js 18.0
+   - TensorFlow.js 2.x
+   - Material-UI 5.x
+   - MongoDB Driver 5.0
+
+### 2.3 System Constraints
+
+1. Technical Constraints
+   - Mobile app limited to Android platform
+   - Image size limit: 10MB
+   - Maximum concurrent users: 500
+
+2. Business Constraints
+   - HIPAA compliance requirements
+   - Data retention policies
+   - User data privacy regulations
+
+## 3. System Architecture
+
+### 3.1 Architectural Overview
+
+The Eczema Diagnosis and Advisory System employs a modular architectural style, dividing the system into independent, self-contained modules. This approach enables:
+- Loose coupling between components
+- High cohesion within modules
+- Scalable and maintainable codebase
+- Clear separation of concerns
+
+#### System Architecture Diagram
+
+```mermaid
+graph TD
+    subgraph Frontend
+        A[Web UI]
+        B[Mobile UI]
+    end
+    
+    subgraph Backend Services
+        C[Image Processing]
+        D[Diagnosis Engine]
+        E[Appointment System]
+        F[Advisory System]
+    end
+    
+    subgraph Security Layer
+        G[Authentication]
+        H[Authorization]
+    end
+    
+    subgraph Data Layer
+        I[MySQL]
+        J[MongoDB]
+        K[Cloud Storage]
+    end
+    
+    A & B --> G
+    G --> H
+    H --> C & D & E & F
+    C & D & E & F --> I & J & K
 ```
 
-3. **Diagnoses (MongoDB)**
-```json
-{
-    "_id": "ObjectId",
-    "patient_id": "UUID",
-    "image_data": {
-        "original_url": "String",
-        "processed_url": "String",
-        "upload_date": "ISODate",
-        "metadata": {
-            "size": "Number",
-            "format": "String",
-            "dimensions": {
-                "width": "Number",
-                "height": "Number"
-            }
-        }
-    },
-    "diagnosis": {
-        "severity": "String",
-        "confidence_score": "Float",
-        "symptoms": ["String"],
-        "affected_areas": ["String"]
-    },
-    "recommendations": {
-        "treatments": ["String"],
-        "lifestyle_changes": ["String"],
-        "follow_up": "String"
-    },
-    "doctor_comments": "String",
-    "created_at": "ISODate",
-    "updated_at": "ISODate"
-}
+### 3.2 High-Level Subsystems
+
+#### 1. User Interface (UI) Subsystem
+- **Responsibilities:**
+  - Profile management
+  - Image upload interface
+  - Diagnosis results display
+  - Appointment scheduling
+- **Technologies:**
+  - React.js for web
+  - React Native for mobile
+  - Material-UI components
+
+#### 2. Image Processing and Diagnosis Subsystem
+- **Responsibilities:**
+  - Image preprocessing
+  - ML model inference
+  - Confidence score calculation
+- **Technologies:**
+  - TensorFlow for ML
+  - OpenCV for image processing
+  - GPU acceleration support
+
+#### 3. Healthcare Appointment Subsystem
+- **Responsibilities:**
+  - Appointment scheduling
+  - Calendar management
+  - Notification system
+- **Technologies:**
+  - Calendar API integration
+  - Real-time updates
+  - SMS/Email notifications
+
+#### 4. Advisory and Treatment Subsystem
+- **Responsibilities:**
+  - Treatment recommendations
+  - Lifestyle suggestions
+  - Research-based insights
+- **Technologies:**
+  - Knowledge base system
+  - Rule engine
+  - Content management system
+
+#### 5. Data Management Subsystem
+- **Responsibilities:**
+  - Data persistence
+  - Backup management
+  - Data encryption
+- **Technologies:**
+  - MySQL for structured data
+  - MongoDB for unstructured data
+  - Google Cloud Storage
+
+#### 6. Authentication and Security Subsystem
+- **Responsibilities:**
+  - User authentication
+  - Access control
+  - Data protection
+- **Technologies:**
+  - OAuth 2.0
+  - JWT tokens
+  - AES-256 encryption
+
+### 3.3 Subsystem Interactions
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant UI
+    participant Auth
+    participant ImageProc
+    participant Advisory
+    participant Data
+    
+    User->>UI: Upload Image
+    UI->>Auth: Validate Session
+    Auth->>UI: Session Valid
+    UI->>ImageProc: Process Image
+    ImageProc->>Data: Store Results
+    ImageProc->>Advisory: Get Recommendations
+    Advisory->>UI: Return Treatment Plan
+    UI->>User: Display Results
 ```
 
-### 3.2 Data Dictionary
+### 3.4 Design Rationale
 
-#### Core Entities
+#### Architecture Selection Criteria
+1. **Scalability**
+   - Independent scaling of subsystems
+   - Horizontal scaling capability
+   - Load balancing support
 
-1. **User**
-   - `id`: UUID - Primary identifier
-   - `email`: String - User's email address
-   - `password_hash`: String - Encrypted password
-   - `role`: Enum - User type (patient/doctor/admin)
-   - `created_at`: Timestamp - Account creation date
-   - `updated_at`: Timestamp - Last update time
+2. **Maintainability**
+   - Modular updates possible
+   - Clear component boundaries
+   - Easy testing and debugging
 
-2. **PatientProfile**
-   - `id`: UUID - Profile identifier
-   - `user_id`: UUID - Reference to user
-   - `name`: String - Patient's full name
-   - `date_of_birth`: Date - Birth date
-   - `contact_number`: String - Phone number
-   - `medical_history`: Text - Health background
+3. **Security**
+   - Layered security approach
+   - Data compartmentalization
+   - Access control at multiple levels
 
-3. **Diagnosis**
-   - `id`: ObjectId - Diagnosis identifier
-   - `patient_id`: UUID - Reference to patient
-   - `image_data`: Object - Image information
-   - `diagnosis`: Object - Analysis results
-   - `recommendations`: Object - Treatment plan
-   - `doctor_comments`: String - Professional notes
+4. **Performance**
+   - Microservices for intensive tasks
+   - Caching strategies
+   - Optimized data access
 
-#### Function Parameters
+5. **Technology Flexibility**
+   - Technology-agnostic interfaces
+   - Best-fit technology selection
+   - Future upgrade path
 
-1. **Image Processing**
-   ```python
-   preprocess_image(
-       image: Binary,           # Raw image data
-       target_size: Tuple,      # Required dimensions
-       quality_threshold: Float  # Minimum quality score
-   ) -> Dict[str, Any]         # Processed image data
-   ```
+#### Alternative Architectures Considered
 
-2. **Diagnosis Generation**
-   ```python
-   generate_diagnosis(
-       processed_image: Array,  # Preprocessed image
-       patient_data: Dict,      # Patient information
-       model_version: String    # ML model identifier
-   ) -> Dict[str, Any]         # Diagnosis results
-   ```
+1. **Monolithic Architecture**
+   - Rejected due to:
+     - Limited scalability
+     - Difficult maintenance
+     - Technology lock-in
 
-## 4. Component Design
+2. **Serverless Architecture**
+   - Rejected due to:
+     - Cold start latency
+     - Complex state management
+     - Cost unpredictability
 
-### 4.1 Core Components
+3. **Pure Microservices**
+   - Rejected due to:
+     - Operational complexity
+     - Network overhead
+     - Development complexity
 
-#### 4.1.1 Image Processing Component
+### 3.5 Decomposition View
+
+```mermaid
+graph TD
+    subgraph "Presentation Layer"
+        A[Web Interface]
+        B[Mobile Interface]
+    end
+    
+    subgraph "Business Logic Layer"
+        C[Image Analysis]
+        D[Diagnosis Engine]
+        E[Advisory System]
+        F[Appointment Manager]
+    end
+    
+    subgraph "Data Access Layer"
+        G[Data Access Objects]
+        H[Repository Pattern]
+        I[Cache Manager]
+    end
+    
+    subgraph "Infrastructure Layer"
+        J[Database]
+        K[Storage]
+        L[Security]
+    end
+    
+    A & B --> C & D & E & F
+    C & D & E & F --> G & H & I
+    G & H & I --> J & K & L
+```
+
+## 4. Data Design
+
+### 4.1 Data Description
+
+The system uses a combination of structured and unstructured data storage solutions:
+- MySQL for structured data (patient profiles, appointment schedules)
+- MongoDB for unstructured data (image files, diagnosis results)
+- Google Cloud Storage for image storage
+
+### 4.2 Data Dictionary
+
+| Field Name | Data Type | Description |
+|------------|-----------|-------------|
+| patient_id | int | Unique patient identifier |
+| image_id | int | Unique image identifier |
+| diagnosis_result | string | Diagnosis result (eczema severity) |
+| treatment_recommendation | string | Treatment recommendation |
+| appointment_schedule | datetime | Appointment schedule |
+
+## 5. Component Design
+
+### 5.1 Core Components
+
+#### 5.1.1 Image Processing Component
 ```python
 class ImageProcessor:
     def preprocess_image(self, image: Binary) -> Dict:
@@ -237,7 +390,7 @@ class ImageProcessor:
             raise ProcessingError(str(e))
 ```
 
-#### 4.1.2 Diagnosis Component
+#### 5.1.2 Diagnosis Component
 ```python
 class DiagnosisGenerator:
     def generate_diagnosis(self, processed_image: Array) -> Dict:
@@ -265,114 +418,252 @@ class DiagnosisGenerator:
             raise DiagnosisError(str(e))
 ```
 
-## 5. Human Interface Design
+## 6. Human Interface Design
 
-### 5.1 User Interface Overview
+### 6.1 Overview of User Interface
 
-#### 5.1.1 Patient Interface
+The system implements a modern, responsive interface using Material-UI (MUI) components, ensuring a consistent and intuitive user experience across all devices. The interface is divided into three main user roles, each with specific functionalities tailored to their needs:
 
-1. **Dashboard**
-   - Recent diagnoses summary
-   - Upcoming appointments
-   - Treatment progress tracker
-   - Quick actions menu
+#### 1. Patient Interface
 
-2. **Image Upload**
-   - Drag-and-drop area
-   - Camera access button
-   - Image preview
-   - Upload progress indicator
+From a patient's perspective, the system provides a comprehensive self-service platform for eczema diagnosis and management:
 
-3. **Diagnosis Results**
-   - Image comparison (original vs. analyzed)
-   - Severity indicator
-   - Confidence score
-   - Treatment recommendations
-   - Appointment booking option
+- **Authentication**
+  - Users begin by creating an account or logging in using their email
+  - First-time users select their role (patient) during registration
+  - Password reset functionality available via email verification
+  - Secure session management with automatic timeout
 
-#### 5.1.2 Doctor Interface
+- **Dashboard**
+  - Upon login, patients see their personalized dashboard
+  - Recent diagnosis history displayed as cards with severity indicators
+  - Upcoming appointments shown with countdown timers
+  - Quick action buttons for common tasks (New Diagnosis, Book Appointment)
+  - Real-time notifications for appointment updates and doctor messages
 
-1. **Patient Management**
-   - Patient list
-   - Search and filter options
-   - Patient history viewer
-   - Appointment calendar
+- **Diagnosis Management**
+  - Patients can initiate a new diagnosis by clicking "New Diagnosis"
+  - Multiple image upload supported with drag-and-drop interface
+  - Real-time image preview before submission
+  - Progress bar shows upload and analysis status
+  - Results presented with:
+    * Severity level with confidence score
+    * Affected area identification
+    * Treatment recommendations
+    * Option to schedule doctor consultation
 
-2. **Diagnosis Review**
-   - Image analysis results
-   - Comment section
-   - Treatment recommendation tools
-   - Patient communication options
+- **Appointment System**
+  - Interactive calendar for selecting appointment dates
+  - Available time slots shown based on doctor schedules
+  - Simple form for describing symptoms or concerns
+  - Confirmation email sent after booking
+  - Option to reschedule or cancel with 24-hour notice
 
-### 5.2 Screen Objects and Actions
+#### 2. Doctor Interface
 
-#### 5.2.1 Image Upload Screen
+Healthcare providers interact with the system through a specialized interface designed for efficient patient management:
 
-**Objects:**
-- Image upload area (draggable)
-- Camera button
-- Preview panel
-- Submit button
-- Quality indicators
+- **Patient Management**
+  - Dashboard shows today's appointments and pending reviews
+  - Searchable patient list with filtering options
+  - Detailed patient history view including:
+    * Previous diagnoses with images
+    * Treatment history
+    * Appointment records
+  - Ability to add notes and update treatment plans
 
-**Actions:**
-- Drag and drop image
-- Take photo
-- Preview uploaded image
-- Submit for analysis
-- Retake/reupload if quality insufficient
+- **Appointment Management**
+  - Weekly and monthly calendar views
+  - Color-coded appointments by type
+  - Quick actions to approve/reject appointment requests
+  - Ability to set recurring availability slots
+  - Emergency slot management
 
-#### 5.2.2 Diagnosis Results Screen
+- **Communication**
+  - Real-time messaging with patients
+  - Template responses for common situations
+  - File and image sharing capabilities
+  - Notification system for urgent cases
+  - Automated appointment reminders
 
-**Objects:**
-- Original image display
-- Analyzed image display
-- Severity indicator (color-coded)
-- Confidence score meter
-- Treatment recommendations list
-- Appointment booking button
+#### 3. Admin Interface
 
-**Actions:**
-- View full-size images
-- Toggle between original/analyzed views
-- Expand treatment details
-- Schedule appointment
-- Download diagnosis report
-- Share results with doctor
+System administrators have access to powerful management tools:
 
-## 6. Requirements Matrix
+- **User Management**
+  - Comprehensive user administration dashboard
+  - Bulk user import/export capabilities
+  - Role-based access control management
+  - User activity monitoring
+  - Account status management (activate/deactivate)
 
-| Requirement ID | Component | Implementation | Status | Priority |
-|---------------|-----------|----------------|--------|----------|
-| FR101 | Image Upload | ImageProcessor.preprocess_image() | Complete | High |
-| FR102 | Quality Check | ImageProcessor._assess_quality() | Complete | High |
-| FR103 | ML Analysis | DiagnosisGenerator.generate_diagnosis() | In Progress | High |
-| FR104 | Results Display | DiagnosisResultsComponent | Complete | High |
-| FR201 | Doctor Search | DoctorSearchService | Complete | Medium |
-| FR202 | Appointments | AppointmentManager | Complete | Medium |
-| FR301 | Treatment Advice | TreatmentAdvisor | Complete | Medium |
-| FR302 | Education Content | ContentManager | Complete | Low |
+The system provides immediate feedback through:
+- Success/error messages for all actions
+- Loading indicators for processing tasks
+- Real-time status updates
+- Email notifications for important events
+- System status notifications
 
-## 7. Appendices
+Security and privacy are maintained through:
+- Role-based access restrictions
+- Audit logging of all sensitive operations
+- Data encryption in transit and at rest
+- Session timeout after inactivity
+- Two-factor authentication for sensitive operations
+
+### 6.2 Screen Images
+
+#### Login/Signup Screen
+```mermaid
+graph TD
+    subgraph Login/Signup
+        A[Tab Selection] --> B[Login Form]
+        A --> C[Signup Form]
+        B --> D[Email Input]
+        B --> E[Password Input]
+        C --> F[Personal Details]
+        C --> G[Role Selection]
+    end
+```
+
+#### Patient Dashboard
+```mermaid
+graph TD
+    subgraph Dashboard
+        A[Navigation] --> B[Upload Image]
+        A --> C[Appointments]
+        A --> D[Messages]
+        A --> E[Settings]
+        B --> F[File Upload Dialog]
+        F --> G[Preview]
+        F --> H[Upload Progress]
+    end
+```
+
+#### Appointment Management
+```mermaid
+graph TD
+    subgraph Appointments
+        A[Book Appointment] --> B[Doctor Selection]
+        B --> C[Date Selection]
+        C --> D[Time Selection]
+        D --> E[Confirmation]
+    end
+```
+
+### 6.3 Screen Objects and Actions
+
+#### 1. Login/Signup Screen
+- **Objects:**
+  - Email TextField
+  - Password TextField
+  - Role Selection Dropdown
+  - Submit Button
+  - Error Alert
+  - Loading Progress
+
+- **Actions:**
+  - Toggle between login/signup
+  - Input validation
+  - Form submission
+  - Error handling
+
+#### 2. File Upload Dialog
+- **Objects:**
+  - File Input Button
+  - Drop Zone
+  - File List
+  - Progress Bar
+  - Upload Button
+  - Cancel Button
+
+- **Actions:**
+  - File selection
+  - File preview
+  - File removal
+  - Upload initiation
+  - Upload cancellation
+
+#### 3. Appointment Management
+- **Objects:**
+  - Doctor Selection Dropdown
+  - Date Picker
+  - Time Picker
+  - Reason TextField
+  - Submit Button
+  - Appointment List
+
+- **Actions:**
+  - Doctor selection
+  - Date/time selection
+  - Appointment booking
+  - Appointment cancellation
+  - Status updates
+
+#### 4. Navigation
+- **Objects:**
+  - Sidebar Menu
+  - User Profile
+  - Notification Bell
+  - Settings Icon
+
+- **Actions:**
+  - Menu navigation
+  - Profile viewing/editing
+  - Notification checking
+  - Settings adjustment
+
+#### 5. Messaging Center
+- **Objects:**
+  - Message List
+  - Chat Window
+  - Contact List
+  - Message Input
+
+- **Actions:**
+  - Message sending
+  - Message reading
+  - Contact selection
+  - File attachment
+
+All interfaces are implemented using Material-UI components, ensuring a consistent look and feel across the application. The design follows Material Design principles for spacing, typography, and color usage. Real-time updates are handled through WebSocket connections, providing immediate feedback for user actions.
+
+## 7. Requirements Matrix
+
+| Req ID | Description | Component | Status | Priority |
+|--------|-------------|-----------|---------|----------|
+| FR-1 | User Registration | AuthSystem | Complete | High |
+| FR-2 | Image Upload | ImageProcessor | Complete | High |
+| FR-3 | Diagnosis Generation | MLEngine | In Progress | High |
+| FR-4 | Appointment Booking | AppointmentManager | Complete | Medium |
+| FR-5 | Treatment Recommendations | AdvisorySystem | Complete | Medium |
+| FR-6 | User Dashboard | UISystem | Complete | High |
+| FR-7 | Data Export | DataManager | Planned | Low |
+| FR-8 | Notification System | NotificationService | In Progress | Medium |
+
+## 8. Appendices
 
 ### A. Technology Stack
 - Frontend: React.js 18.0
 - Backend: Node.js 16.x
-- Databases: MySQL 8.0, MongoDB 5.0
-- ML: TensorFlow 2.x
+- Database: MySQL 8.0, MongoDB 5.0
+- ML Framework: TensorFlow 2.x
 - Cloud: Google Cloud Platform
-- Storage: Google Cloud Storage
 
-### B. Security Implementation
+### B. API Documentation
+[API documentation would be included here]
+
+### C. Database Schema
+[Detailed database schema would be included here]
+
+### D. Security Measures
 - AES-256 encryption
-- TLS 1.3 protocol
 - JWT authentication
 - Role-based access control
 - Regular security audits
 
-### C. Performance Benchmarks
+### E. Performance Benchmarks
 - Image processing: < 5s
 - API response: < 2s
 - Concurrent users: 500+
 - Uptime: 99.9%
-- Storage: Unlimited

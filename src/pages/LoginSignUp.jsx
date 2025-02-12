@@ -1,18 +1,5 @@
-import React, { useState } from 'react';
-import {
-  Box,
-  Button,
-  TextField,
-  Typography,
-  Tab,
-  Tabs,
-  Alert,
-  CircularProgress,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-} from '@mui/material';
+import React, { useState, useContext } from 'react';
+import { FaUser, FaLock, FaEnvelope } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -42,14 +29,21 @@ const LoginSignUp = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const [formData, setFormData] = useState({
+    name: '',
     email: '',
     password: '',
-    firstName: '',
-    lastName: '',
     role: 'patient', // Default role
   });
+
+  // Header specific to this page
+  const Header = () => (
+    <header className="w-full bg-transparent py-6 text-white text-center">
+      <h1 className='text-2xl font-extrabold'>ECZEMA DIAGNOSIS AND ADVISORY SYSTEM</h1>
+    </header>
+  );
 
   const handleChange = (e) => {
     setFormData({
@@ -76,6 +70,8 @@ const LoginSignUp = () => {
 
       // Login the user
       await login(user, token, refreshToken);
+      setSuccessMessage('Successfully logged in!');
+      setTimeout(() => setSuccessMessage(''), 3000);
 
       // Navigation is handled by AuthContext
     } catch (error) {
@@ -100,8 +96,8 @@ const LoginSignUp = () => {
       const newUser = {
         email: formData.email,
         password: formData.password,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
+        firstName: formData.name,
+        lastName: '',
         role: formData.role,
         id: `user-${Math.random()}`,
       };
@@ -112,6 +108,8 @@ const LoginSignUp = () => {
 
       // Login the new user
       await login(newUser, token, refreshToken);
+      setSuccessMessage('Account created successfully!');
+      setTimeout(() => setSuccessMessage(''), 3000);
 
       // Navigation is handled by AuthContext
     } catch (error) {
@@ -121,129 +119,166 @@ const LoginSignUp = () => {
     }
   };
 
+  // Toggle between Login and Signup
+  const toggleMode = () => {
+    setIsLogin(!isLogin);
+    setFormData({
+      name: '',
+      email: '',
+      password: '',
+      role: 'patient', // Reset to default role
+    });
+    setError('');
+  };
+
   return (
-    <Box sx={{ width: '100%', maxWidth: 400, mx: 'auto' }}>
-      <Typography variant="h4" align="center" gutterBottom>
-        {isLogin ? 'Login' : 'Sign Up'}
-      </Typography>
+    <div className="min-h-screen w-full flex flex-col items-center bg-cover bg-center bg-[url('/public/eczema1.jpg')]">
+      <Header />
 
-      <Tabs
-        value={isLogin ? 0 : 1}
-        onChange={(_, value) => setIsLogin(value === 0)}
-        centered
-        sx={{ mb: 3 }}
-      >
-        <Tab label="Login" />
-        <Tab label="Sign Up" />
-      </Tabs>
-
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
-
-      <form onSubmit={isLogin ? handleLogin : handleSignUp}>
-        {!isLogin && (
-          <>
-            <TextField
-              fullWidth
-              label="First Name"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleChange}
-              margin="normal"
-              required
-            />
-            <TextField
-              fullWidth
-              label="Last Name"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleChange}
-              margin="normal"
-              required
-            />
-          </>
-        )}
-        
-        <TextField
-          fullWidth
-          label="Email"
-          name="email"
-          type="email"
-          value={formData.email}
-          onChange={handleChange}
-          margin="normal"
-          required
-        />
-        
-        <TextField
-          fullWidth
-          label="Password"
-          name="password"
-          type="password"
-          value={formData.password}
-          onChange={handleChange}
-          margin="normal"
-          required
-        />
-
-        {!isLogin && (
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Role</InputLabel>
-            <Select
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              required
-            >
-              <MenuItem value="patient">Patient</MenuItem>
-              <MenuItem value="doctor">Doctor</MenuItem>
-            </Select>
-          </FormControl>
-        )}
-
-        <Button
-          fullWidth
-          type="submit"
-          variant="contained"
-          size="large"
-          disabled={loading}
-          sx={{ mt: 3 }}
-        >
-          {loading ? (
-            <CircularProgress size={24} />
-          ) : (
-            isLogin ? 'Login' : 'Sign Up'
+      <div className="w-full px-4 py-8 sm:px-0 max-w-[95%] sm:max-w-[500px] mx-auto">
+        <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 sm:p-8">
+          {successMessage && (
+            <p className="mb-4 text-green-500 text-center text-sm">
+              {successMessage}
+            </p>
           )}
-        </Button>
-      </form>
+          {error && (
+            <p className="mb-4 text-red-500 text-center text-sm">
+              {error}
+            </p>
+          )}
 
-      <Typography variant="body2" align="center" sx={{ mt: 2 }}>
-        {isLogin ? "Don't have an account? " : "Already have an account? "}
-        <Button
-          color="primary"
-          onClick={() => setIsLogin(!isLogin)}
-          sx={{ textTransform: 'none' }}
-        >
-          {isLogin ? 'Sign Up' : 'Login'}
-        </Button>
-      </Typography>
+          <div className="flex justify-center mb-6">
+            <button
+              onClick={() => setIsLogin(true)}
+              className={`px-4 py-2 font-semibold text-sm rounded-l-lg focus:outline-none ${
+                isLogin ? 'bg-indigo-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+              }`}
+            >
+              Login
+            </button>
+            <button
+              onClick={() => setIsLogin(false)}
+              className={`px-4 py-2 font-semibold text-sm rounded-r-lg focus:outline-none ${
+                !isLogin ? 'bg-indigo-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+              }`}
+            >
+              Sign Up
+            </button>
+          </div>
 
-      {/* Demo Account Information */}
-      <Box sx={{ mt: 4, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
-        <Typography variant="subtitle2" gutterBottom>
-          Demo Accounts:
-        </Typography>
-        <Typography variant="body2">
-          Doctor: doctor@example.com / password123
-        </Typography>
-        <Typography variant="body2">
-          Patient: patient@example.com / password123
-        </Typography>
-      </Box>
-    </Box>
+          <form onSubmit={isLogin ? handleLogin : handleSignUp}>
+            {!isLogin && (
+              <>
+                <div className="mb-4">
+                  <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="name">
+                    Full Name
+                  </label>
+                  <div className="relative">
+                    <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      placeholder="Enter your full name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      className="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="role">
+                    Select Role
+                  </label>
+                  <select
+                    id="role"
+                    name="role"
+                    value={formData.role}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
+                  >
+                    <option value="patient">Patient</option>
+                    <option value="doctor">Doctor</option>
+                  </select>
+                </div>
+              </>
+            )}
+
+            <div className="mb-4">
+              <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="email">
+                Email
+              </label>
+              <div className="relative">
+                <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  placeholder="Enter your email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="password">
+                Password
+              </label>
+              <div className="relative">
+                <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  placeholder={isLogin ? "Enter your password" : "Create a password"}
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
+                  required
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+              disabled={loading}
+            >
+              {loading ? 'Please wait...' : (isLogin ? 'Login' : 'Sign Up')}
+            </button>
+          </form>
+
+          <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-300">
+            {isLogin ? "Don't have an account?" : "Already have an account?"}{' '}
+            <button 
+              onClick={toggleMode} 
+              className="text-indigo-600 hover:text-indigo-800 dark:hover:text-indigo-400 font-medium"
+            >
+              {isLogin ? 'Sign Up' : 'Login'}
+            </button>
+          </p>
+
+          {/* Demo Account Information */}
+          <div className="mt-8 p-4 bg-gray-100 dark:bg-gray-700 rounded-md">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Demo Accounts:
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Doctor: doctor@example.com / password123
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Patient: patient@example.com / password123
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

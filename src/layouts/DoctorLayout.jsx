@@ -18,6 +18,7 @@ import {
   Avatar,
   useTheme,
   useMediaQuery,
+  ListItemButton,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -28,6 +29,7 @@ import {
   Notifications as NotificationsIcon,
   Settings as SettingsIcon,
   ExitToApp as LogoutIcon,
+  BarChart as AnalyticsIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { useWebSocket } from '../contexts/WebSocketContext';
@@ -39,6 +41,7 @@ const menuItems = [
   { text: 'Patients', icon: <PeopleIcon />, path: '/doctor/patients' },
   { text: 'Appointments', icon: <EventIcon />, path: '/doctor/appointments' },
   { text: 'Messages', icon: <MessageIcon />, path: '/doctor/messages' },
+  { text: 'Analytics', icon: <AnalyticsIcon />, path: '/doctor/analytics' },
   { text: 'Notifications', icon: <NotificationsIcon />, path: '/doctor/notifications' },
   { text: 'Settings', icon: <SettingsIcon />, path: '/doctor/settings' },
 ];
@@ -74,6 +77,11 @@ const DoctorLayout = () => {
     await logout();
   };
 
+  const handleNavigation = (path) => {
+    navigate(path);
+    if (isMobile) setMobileOpen(false);
+  };
+
   const drawer = (
     <Box>
       <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -92,42 +100,26 @@ const DoctorLayout = () => {
       <Divider />
       <List>
         {menuItems.map((item) => (
-          <ListItem
-            button
-            key={item.text}
-            selected={location.pathname === item.path}
-            onClick={() => {
-              navigate(item.path);
-              if (isMobile) setMobileOpen(false);
-            }}
-            sx={{
-              '&.Mui-selected': {
-                backgroundColor: theme.palette.primary.light,
-                '&:hover': {
-                  backgroundColor: theme.palette.primary.light,
-                },
-              },
-            }}
-          >
-            <ListItemIcon>
-              {item.text === 'Messages' ? (
-                <Badge badgeContent={unreadMessages} color="error">
-                  {item.icon}
-                </Badge>
-              ) : item.text === 'Notifications' ? (
-                <Badge badgeContent={unreadNotifications} color="error">
-                  {item.icon}
-                </Badge>
-              ) : (
-                item.icon
-              )}
-            </ListItemIcon>
-            <ListItemText 
-              primary={item.text}
-              primaryTypographyProps={{
-                fontWeight: location.pathname === item.path ? 'bold' : 'normal',
-              }}
-            />
+          <ListItem key={item.text} disablePadding>
+            <ListItemButton
+              selected={location.pathname === item.path}
+              onClick={() => handleNavigation(item.path)}
+            >
+              <ListItemIcon>
+                {item.text === 'Messages' ? (
+                  <Badge badgeContent={unreadMessages} color="error">
+                    {item.icon}
+                  </Badge>
+                ) : item.text === 'Notifications' ? (
+                  <Badge badgeContent={unreadNotifications} color="error">
+                    {item.icon}
+                  </Badge>
+                ) : (
+                  item.icon
+                )}
+              </ListItemIcon>
+              <ListItemText primary={item.text} />
+            </ListItemButton>
           </ListItem>
         ))}
       </List>

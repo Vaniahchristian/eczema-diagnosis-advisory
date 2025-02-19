@@ -1,5 +1,5 @@
 // src/components/Sidebar.jsx
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
@@ -12,6 +12,7 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Collapse,
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -23,28 +24,54 @@ import {
   Info as InfoIcon,
   Person as PersonIcon,
   Logout as LogoutIcon,
+  BarChart as AnalyticsIcon,
+  ExpandLess,
+  ExpandMore,
 } from '@mui/icons-material';
 import { AuthContext } from '../contexts/AuthContext.jsx';
+import DoctorAnalytics from './DoctorAnalytics.jsx';
+import PatientAnalytics from './PatientAnalytics.jsx';
 
 const drawerWidth = 240;
 
-const menuItems = [
-  { path: '/dashboard', label: 'Dashboard', icon: <DashboardIcon /> },
-  { path: '/image-upload', label: 'New Diagnosis', icon: <PhotoCameraIcon /> },
-  { path: '/consult', label: 'Consult Doctor', icon: <MessageIcon /> },
-  { path: '/education', label: 'Education', icon: <SchoolIcon /> },
-  { path: '/treatment/history', label: 'Treatment History', icon: <AssessmentIcon /> },
-  { path: '/faq', label: 'FAQ', icon: <QuestionAnswerIcon /> },
-  { path: '/about', label: 'About Us', icon: <InfoIcon /> },
-];
+const getMenuItems = (isDoctor) => {
+  const commonItems = [
+    { path: '/dashboard', label: 'Dashboard', icon: <DashboardIcon /> },
+    { path: '/education', label: 'Education', icon: <SchoolIcon /> },
+    { path: '/faq', label: 'FAQ', icon: <QuestionAnswerIcon /> },
+    { path: '/about', label: 'About Us', icon: <InfoIcon /> },
+  ];
+
+  const doctorItems = [
+    { path: '/patients', label: 'Patients', icon: <PersonIcon /> },
+    { path: '/consultations', label: 'Consultations', icon: <MessageIcon /> },
+    { path: '/analytics', label: 'Analytics', icon: <AnalyticsIcon />, hasAnalytics: true },
+  ];
+
+  const patientItems = [
+    { path: '/image-upload', label: 'New Diagnosis', icon: <PhotoCameraIcon /> },
+    { path: '/consult', label: 'Consult Doctor', icon: <MessageIcon /> },
+    { path: '/treatment/history', label: 'Treatment History', icon: <AssessmentIcon /> },
+    { path: '/my-analytics', label: 'My Progress', icon: <AnalyticsIcon />, hasAnalytics: true },
+  ];
+
+  return [...commonItems, ...(isDoctor ? doctorItems : patientItems)];
+};
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, user } = useContext(AuthContext);
+  const [analyticsOpen, setAnalyticsOpen] = useState(false);
+  const isDoctor = user?.role === 'doctor';
+  const menuItems = getMenuItems(isDoctor);
 
-  const handleNavigation = (path) => {
-    navigate(path);
+  const handleNavigation = (path, hasAnalytics) => {
+    if (hasAnalytics) {
+      setAnalyticsOpen(!analyticsOpen);
+    } else {
+      navigate(path);
+    }
   };
 
   const handleLogout = () => {
@@ -96,7 +123,7 @@ const Sidebar = () => {
                 {user?.firstName} {user?.lastName}
               </Typography>
               <Typography variant="caption" color="text.secondary" noWrap>
-                {user?.email}
+                {user?.role === 'doctor' ? 'Doctor' : 'Patient'}
               </Typography>
             </Box>
           </Box>
@@ -107,37 +134,49 @@ const Sidebar = () => {
         {/* Navigation Menu */}
         <List>
           {menuItems.map((item) => (
-            <ListItem key={item.path} disablePadding>
-              <ListItemButton
-                selected={location.pathname === item.path}
-                onClick={() => handleNavigation(item.path)}
-                sx={{
-                  '&.Mui-selected': {
-                    bgcolor: 'primary.light',
-                    '&:hover': {
-                      bgcolor: 'primary.light',
-                    },
-                  },
-                }}
-              >
-                <ListItemIcon
+            <React.Fragment key={item.path}>
+              <ListItem disablePadding>
+                <ListItemButton
+                  selected={location.pathname === item.path}
+                  onClick={() => handleNavigation(item.path, item.hasAnalytics)}
                   sx={{
-                    color: location.pathname === item.path ? 'primary.main' : 'inherit',
+                    '&.Mui-selected': {
+                      bgcolor: 'primary.light',
+                      '&:hover': {
+                        bgcolor: 'primary.light',
+                      },
+                    },
                   }}
                 >
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText
-                  primary={item.label}
-                  sx={{
-                    '& .MuiTypography-root': {
+                  <ListItemIcon
+                    sx={{
                       color: location.pathname === item.path ? 'primary.main' : 'inherit',
-                      fontWeight: location.pathname === item.path ? 'bold' : 'normal',
-                    },
-                  }}
-                />
-              </ListItemButton>
-            </ListItem>
+                    }}
+                  >
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={item.label}
+                    sx={{
+                      '& .MuiTypography-root': {
+                        color: location.pathname === item.path ? 'primary.main' : 'inherit',
+                        fontWeight: location.pathname === item.path ? 'bold' : 'normal',
+                      },
+                    }}
+                  />
+                  {item.hasAnalytics && (
+                    analyticsOpen ? <ExpandLess /> : <ExpandMore />
+                  )}
+                </ListItemButton>
+              </ListItem>
+              {item.hasAnalytics && (
+                <Collapse in={analyticsOpen} timeout="auto" unmountOnExit>
+                  <Box sx={{ p: 2, bgcolor: 'background.default' }}>
+                    {isDoctor ? <DoctorAnalytics /> : <PatientAnalytics />}
+                  </Box>
+                </Collapse>
+              )}
+            </React.Fragment>
           ))}
         </List>
 

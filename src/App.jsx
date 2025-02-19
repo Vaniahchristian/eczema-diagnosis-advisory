@@ -34,6 +34,7 @@ import FAQ from "./pages/patient/FAQ.jsx";
 import AboutUs from "./pages/patient/AboutUs.jsx";
 import ConsultationRoom from "./pages/patient/ConsultationRoom.jsx";
 import TreatmentAdvice from "./pages/patient/TreatmentAdvice.jsx";
+import PatientAnalyticsPage from "./pages/patient/AnalyticsPage.jsx";
 
 // Import Doctor Pages
 import DoctorDashboard from "./pages/doctor/DoctorDashboard";
@@ -41,6 +42,7 @@ import DoctorAppointments from "./pages/doctor/AppointmentsPage";
 import DoctorMessaging from "./pages/doctor/MessagingCenter";
 import DoctorNotifications from "./pages/doctor/NotificationsPage";
 import DoctorSettings from "./pages/doctor/SettingsPage";
+import DoctorAnalyticsPage from "./pages/doctor/AnalyticsPage.jsx";
 
 const App = () => {
   return (
@@ -73,6 +75,7 @@ const App = () => {
                 <Route path="/patient/notifications" element={<Notifications />} />
                 <Route path="/patient/consultation/:id" element={<ConsultationRoom />} />
                 <Route path="/patient/treatment/:id" element={<TreatmentAdvice />} />
+                <Route path="/patient/analytics" element={<PatientAnalyticsPage />} />
               </Route>
             </Route>
 
@@ -84,6 +87,7 @@ const App = () => {
                 <Route path="/doctor/messages" element={<DoctorMessaging />} />
                 <Route path="/doctor/notifications" element={<DoctorNotifications />} />
                 <Route path="/doctor/settings" element={<DoctorSettings />} />
+                <Route path="/doctor/analytics" element={<DoctorAnalyticsPage />} />
               </Route>
             </Route>
 

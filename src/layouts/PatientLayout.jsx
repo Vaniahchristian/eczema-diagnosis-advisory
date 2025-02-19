@@ -33,6 +33,7 @@ import {
   Person as PersonIcon,
   ExitToApp as LogoutIcon,
   LocalHospital as DoctorIcon,
+  BarChart as AnalyticsIcon,
 } from '@mui/icons-material';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -77,6 +78,11 @@ const menuItems = [
     path: '/patient/education',
   },
   {
+    text: 'Analytics',
+    icon: <AnalyticsIcon />,
+    path: '/patient/analytics',
+  },
+  {
     text: 'Settings',
     icon: <SettingsIcon />,
     path: '/patient/settings',
@@ -102,67 +108,62 @@ const PatientLayout = () => {
     setMobileOpen(!mobileOpen);
   };
 
-  const handleProfileMenuOpen = (event) => {
+  const handleMenuClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleProfileMenuClose = () => {
+  const handleMenuClose = () => {
     setAnchorEl(null);
   };
 
-  const handleNotificationMenuOpen = (event) => {
+  const handleNotificationClick = (event) => {
     setNotificationAnchorEl(event.currentTarget);
   };
 
-  const handleNotificationMenuClose = () => {
+  const handleNotificationClose = () => {
     setNotificationAnchorEl(null);
   };
 
   const handleLogout = async () => {
-    try {
-      await logout();
-      navigate('/login');
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
+    handleMenuClose();
+    await logout();
+  };
+
+  const handleNavigation = (path) => {
+    navigate(path);
+    if (isMobile) setMobileOpen(false);
   };
 
   const drawer = (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Toolbar sx={{ px: 2 }}>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: theme.palette.primary.main }}>
-          Eczema Care
-        </Typography>
-      </Toolbar>
+    <Box>
+      <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Avatar sx={{ bgcolor: theme.palette.primary.main }}>
+          {user?.firstName?.[0] || 'P'}
+        </Avatar>
+        <Box>
+          <Typography variant="subtitle1">
+            {user?.firstName} {user?.lastName}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Patient
+          </Typography>
+        </Box>
+      </Box>
       <Divider />
-      <List sx={{ flexGrow: 1 }}>
+      <List>
         {menuItems.map((item) => (
           <ListItem key={item.text} disablePadding>
             <ListItemButton
               selected={location.pathname === item.path}
-              onClick={() => {
-                navigate(item.path);
-                if (isMobile) setMobileOpen(false);
-              }}
-              sx={{
-                borderRadius: 2,
-                mx: 1,
-                mb: 0.5,
-                '&.Mui-selected': {
-                  backgroundColor: theme.palette.primary.main,
-                  color: 'white',
-                  '&:hover': {
-                    backgroundColor: theme.palette.primary.dark,
-                  },
-                  '& .MuiListItemIcon-root': {
-                    color: 'white',
-                  },
-                },
-              }}
+              onClick={() => handleNavigation(item.path)}
             >
-              <ListItemIcon sx={{ minWidth: 40 }}>
+              <ListItemIcon>
                 {item.text === 'Messages' ? (
                   <Badge badgeContent={unreadMessages} color="error">
+                    {item.icon}
+                  </Badge>
+                ) : item.text === 'Notifications' ? (
+                  <Badge badgeContent={unreadNotifications} color="error">
                     {item.icon}
                   </Badge>
                 ) : (
@@ -174,12 +175,6 @@ const PatientLayout = () => {
           </ListItem>
         ))}
       </List>
-      <Divider />
-      <Box sx={{ p: 2 }}>
-        <Typography variant="caption" color="text.secondary">
-          2025 Eczema Care. All rights reserved.
-        </Typography>
-      </Box>
     </Box>
   );
 
@@ -207,7 +202,7 @@ const PatientLayout = () => {
           </Typography>
           <IconButton
             color="inherit"
-            onClick={handleNotificationMenuOpen}
+            onClick={handleNotificationClick}
             sx={{ mr: 1 }}
           >
             <Badge badgeContent={unreadNotifications} color="error">
@@ -215,7 +210,7 @@ const PatientLayout = () => {
             </Badge>
           </IconButton>
           <IconButton
-            onClick={handleProfileMenuOpen}
+            onClick={handleMenuClick}
             sx={{ ml: 1 }}
           >
             <Avatar sx={{ width: 32, height: 32, bgcolor: theme.palette.primary.main }}>
@@ -277,8 +272,8 @@ const PatientLayout = () => {
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
-        onClose={handleProfileMenuClose}
-        onClick={handleProfileMenuClose}
+        onClose={handleMenuClose}
+        onClick={handleMenuClose}
       >
         <MenuItem onClick={() => navigate('/patient/profile')}>
           <ListItemIcon>
@@ -305,8 +300,8 @@ const PatientLayout = () => {
       <Menu
         anchorEl={notificationAnchorEl}
         open={Boolean(notificationAnchorEl)}
-        onClose={handleNotificationMenuClose}
-        onClick={handleNotificationMenuClose}
+        onClose={handleNotificationClose}
+        onClick={handleNotificationClose}
         PaperProps={{
           sx: { width: 360 },
         }}

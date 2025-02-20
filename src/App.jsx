@@ -13,6 +13,7 @@ import PublicLayout from "./components/PublicLayout.jsx";
 import PrivateLayout from "./components/PrivateLayout.jsx";
 import DoctorLayout from "./layouts/DoctorLayout";
 import PatientLayout from "./layouts/PatientLayout.jsx";
+import AdminLayout from "./layouts/AdminLayout";
 import PrivateRoute from "./components/PrivateRoute.jsx";
 
 // Import Public Pages
@@ -43,6 +44,9 @@ import DoctorMessaging from "./pages/doctor/MessagingCenter";
 import DoctorNotifications from "./pages/doctor/NotificationsPage";
 import DoctorSettings from "./pages/doctor/SettingsPage";
 import DoctorAnalyticsPage from "./pages/doctor/AnalyticsPage.jsx";
+
+// Import Admin Pages
+import AdminDashboard from "./pages/admin/Dashboard";
 
 const App = () => {
   return (
@@ -88,6 +92,20 @@ const App = () => {
                 <Route path="/doctor/notifications" element={<DoctorNotifications />} />
                 <Route path="/doctor/settings" element={<DoctorSettings />} />
                 <Route path="/doctor/analytics" element={<DoctorAnalyticsPage />} />
+              </Route>
+            </Route>
+
+            {/* Admin Routes */}
+            <Route element={<PrivateRoute allowedRoles={['admin']} />}>
+              <Route element={<AdminLayout />}>
+                <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                <Route path="/admin/users" element={<div>User Management</div>} />
+                <Route path="/admin/health" element={<div>System Health</div>} />
+                <Route path="/admin/analytics" element={<div>Admin Analytics</div>} />
+                <Route path="/admin/roles" element={<div>Roles & Permissions</div>} />
+                <Route path="/admin/security" element={<div>Security Settings</div>} />
+                <Route path="/admin/logs" element={<div>System Logs</div>} />
+                <Route path="/admin/settings" element={<div>Admin Settings</div>} />
               </Route>
             </Route>
 

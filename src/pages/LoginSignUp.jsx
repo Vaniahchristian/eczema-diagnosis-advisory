@@ -153,131 +153,148 @@ const LoginSignUp = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex flex-col items-center justify-center">
+    <div className="min-h-screen w-full flex flex-col items-center bg-cover bg-center bg-[url('/public/eczema1.jpg')]">
       <Header />
-      <div className="bg-white p-8 rounded-lg shadow-lg w-96">
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
-          {isLogin ? 'Login' : 'Sign Up'}
-        </h2>
+      <div className="w-full px-4 py-8 sm:px-0 max-w-[95%] sm:max-w-[500px] mx-auto">
+        <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-6 sm:p-8">
+          <h2 className="text-2xl font-bold mb-6 text-center text-gray-800 dark:text-white">
+            {isLogin ? 'Login' : 'Sign Up'}
+          </h2>
 
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
-            {error}
+          {error && (
+            <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+              {error}
+            </div>
+          )}
+
+          {successMessage && (
+            <div className="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
+              {successMessage}
+            </div>
+          )}
+
+          <div className="flex justify-center mb-6">
+            <button
+              onClick={() => setIsLogin(true)}
+              className={`px-4 py-2 font-semibold text-sm rounded-l-lg focus:outline-none ${
+                isLogin ? 'bg-indigo-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+              }`}
+            >
+              Login
+            </button>
+            <button
+              onClick={() => setIsLogin(false)}
+              className={`px-4 py-2 font-semibold text-sm rounded-r-lg focus:outline-none ${
+                !isLogin ? 'bg-indigo-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+              }`}
+            >
+              Sign Up
+            </button>
           </div>
-        )}
 
-        {successMessage && (
-          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">
-            {successMessage}
-          </div>
-        )}
+          <form onSubmit={isLogin ? handleLogin : handleSignUp}>
+            {!isLogin && (
+              <>
+                <div className="mb-4">
+                  <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="name">
+                    Full Name
+                  </label>
+                  <div className="relative">
+                    <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      placeholder="Enter your full name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      className="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
+                      required
+                    />
+                  </div>
+                </div>
 
-        <form onSubmit={isLogin ? handleLogin : handleSignUp}>
-          {!isLogin && (
+                <div className="mb-4">
+                  <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="role">
+                    Select Role
+                  </label>
+                  <select
+                    id="role"
+                    name="role"
+                    value={formData.role}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
+                  >
+                    <option value="patient">Patient</option>
+                    <option value="doctor">Doctor</option>
+                  </select>
+                </div>
+              </>
+            )}
+
             <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2">
-                Name
+              <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="email">
+                Email
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-2 text-gray-400">
-                  <FaUser />
-                </span>
+                <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
+                  type="email"
+                  id="email"
+                  name="email"
+                  placeholder="Enter your email"
+                  value={formData.email}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-indigo-500"
-                  placeholder="Enter your name"
+                  className="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
+                  required
                 />
               </div>
             </div>
-          )}
 
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Email
-            </label>
-            <div className="relative">
-              <span className="absolute left-3 top-2 text-gray-400">
-                <FaEnvelope />
-              </span>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-indigo-500"
-                placeholder="Enter your email"
-              />
-            </div>
-          </div>
-
-          <div className="mb-6">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Password
-            </label>
-            <div className="relative">
-              <span className="absolute left-3 top-2 text-gray-400">
-                <FaLock />
-              </span>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className="w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-indigo-500"
-                placeholder="Enter your password"
-              />
-            </div>
-          </div>
-
-          {!isLogin && (
             <div className="mb-6">
-              <label className="block text-gray-700 text-sm font-bold mb-2">
-                Role
+              <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="password">
+                Password
               </label>
-              <select
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-indigo-500"
-              >
-                <option value="patient">Patient</option>
-                <option value="doctor">Doctor</option>
-              </select>
+              <div className="relative">
+                <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  placeholder={isLogin ? "Enter your password" : "Create a password"}
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
+                  required
+                />
+              </div>
             </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className={`w-full bg-indigo-500 text-white py-2 rounded-lg hover:bg-indigo-600 transition-colors ${
-              loading ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
-          >
-            {loading ? 'Please wait...' : isLogin ? 'Login' : 'Sign Up'}
-          </button>
-        </form>
+            <button
+              type="submit"
+              className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+              disabled={loading}
+            >
+              {loading ? 'Please wait...' : (isLogin ? 'Login' : 'Sign Up')}
+            </button>
+          </form>
 
-        <div className="mt-4 text-center">
-          <button
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-indigo-500 hover:text-indigo-600"
-          >
-            {isLogin
-              ? "Don't have an account? Sign Up"
-              : 'Already have an account? Login'}
-          </button>
-        </div>
-
-        {/* Demo Account Information */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <h3 className="text-sm font-bold text-gray-700 mb-2">Demo Accounts:</h3>
-          <div className="text-xs text-gray-600">
-            <p><strong>Admin:</strong> admin@eczema.com / admin123</p>
-            <p><strong>Doctor:</strong> doctor@example.com / password123</p>
-            <p><strong>Patient:</strong> patient@example.com / password123</p>
+          {/* Demo Account Information */}
+          <div className="mt-8 p-4 bg-gray-100 dark:bg-gray-700 rounded-md">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Demo Accounts:
+            </h3>
+            <div className="space-y-1">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                <strong>Admin:</strong> admin@eczema.com / admin123
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                <strong>Doctor:</strong> doctor@example.com / password123
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                <strong>Patient:</strong> patient@example.com / password123
+              </p>
+            </div>
           </div>
         </div>
       </div>

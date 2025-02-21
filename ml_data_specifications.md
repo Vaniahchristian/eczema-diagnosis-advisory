@@ -1,157 +1,263 @@
 # ML Data Specifications for Eczema Diagnosis System
 
-## 1. Image Dataset Requirements
+## 1. Image Data Requirements
 
-### Primary Datasets
-- **ECZEMA-DB Dataset**
-  - Source: International Skin Imaging Collaboration (ISIC)
-  - Focus: Specifically curated for eczema diagnosis
-  - Size: 5,000+ eczema images
-
-- **ADDI (Atopic Dermatitis Diagnosis Images) Dataset**
-  - Source: Medical institutions and dermatology clinics
-  - Size: 3,000+ clinically verified eczema cases
-  - Includes severity classifications
-
-- **Supplementary Datasets**
-  - DermNet NZ eczema collection
-  - NHS eczema image database
-  - Local hospital partnerships for data collection
-
-### Image Specifications
-- **Resolution**: Minimum 600x400 pixels
-- **Format**: JPEG/PNG
+### 1.1 Input Image Specifications
+- **Format**: JPEG, PNG
+- **Resolution**: Minimum 224x224 pixels (standard for many CNN architectures)
 - **Color Space**: RGB
-- **Metadata**: Must include patient age, skin type, and affected body area
+- **Size**: Maximum 10MB per image
+- **Quality**: Minimum quality score of 0.6 (on scale 0-1)
 
-## 2. Training Data Distribution
+### 1.2 Image Preprocessing Requirements
+- **Normalization**: Pixel values scaled to [0,1]
+- **Resizing**: Standard 224x224 pixels
+- **Augmentation**:
+  - Rotation: ±20 degrees
+  - Horizontal flip
+  - Brightness variation: ±20%
+  - Contrast adjustment: ±10%
 
-### By Eczema Type
-- Acute Eczema: 30%
-- Chronic Eczema: 30%
-- Mild Eczema: 20%
-- Severe Eczema: 20%
+### 1.3 Image Metadata
+- Timestamp of capture
+- Device information
+- Lighting conditions
+- Body location marker
 
-### By Skin Type (Fitzpatrick Scale)
-- Type I-II: 20%
-- Type III-IV: 40%
-- Type V-VI: 40%
+## 2. Training Data Requirements
 
-### By Body Location
-- Face/Neck: 25%
-- Arms/Hands: 25%
-- Legs/Feet: 25%
-- Trunk/Back: 25%
+### 2.1 Dataset Composition
+- **Minimum Dataset Size**: 10,000 labeled images
+- **Class Distribution**:
+  - Eczema cases: 50%
+  - Non-eczema cases: 50%
+- **Severity Levels**:
+  - Mild: 30%
+  - Moderate: 40%
+  - Severe: 30%
 
-## 3. Validation Data Requirements
+### 2.2 Image Annotations
+- **Primary Labels**:
+  - Eczema presence (binary)
+  - Severity level (mild/moderate/severe)
+  - Affected area classification
+- **Secondary Labels**:
+  - Skin type (Fitzpatrick scale)
+  - Patient age group
+  - Body location
 
-### Clinical Validation Set
-- **Size**: 2,000 images
-- **Source**: Verified by dermatologists
-- **Annotation**: Detailed severity scoring
-- **Distribution**: Stratified across all categories
+### 2.3 Validation Requirements
+- **Split Ratio**: 70/15/15 (train/validation/test)
+- **Cross-Validation**: 5-fold
+- **Stratification**: By severity level and skin type
 
-### Test Set
-- **Size**: 1,000 images
-- **Source**: Independent from training data
-- **Validation**: Double-blind verification
+## 3. Model Feature Requirements
 
-## 4. Data Augmentation Techniques
+### 3.1 Input Features
+- **Image Features**:
+  - Raw pixel values
+  - Edge detection maps
+  - Texture analysis
+  - Color histograms
+- **Contextual Features**:
+  - Body location
+  - Patient age
+  - Previous diagnosis history
 
-### Image Transformations
-- Rotation: ±20 degrees
-- Scaling: ±15%
-- Horizontal/Vertical Flip
-- Brightness Variation: ±10%
-- Contrast Adjustment: ±10%
+### 3.2 Output Features
+- **Primary Outputs**:
+  - Eczema probability (0-1)
+  - Severity score (0-1)
+  - Affected area segmentation mask
+- **Confidence Metrics**:
+  - Prediction confidence score
+  - Model uncertainty estimation
+  - Quality assessment score
 
-### Preprocessing Steps
-1. Image Normalization
-2. Background Removal
-3. Contrast Enhancement
-4. Noise Reduction
-5. Color Space Standardization
+## 4. Performance Requirements
 
-## 5. Data Labeling Requirements
+### 4.1 Accuracy Metrics
+- **Minimum Requirements**:
+  - Classification accuracy: >90%
+  - Sensitivity: >85%
+  - Specificity: >85%
+  - F1 Score: >0.85
+  - AUC-ROC: >0.90
 
-### Primary Labels
-- Diagnosis (Eczema/Non-Eczema)
-- Severity Level (0-4 scale)
-- Affected Area Percentage
+### 4.2 Processing Requirements
+- **Speed**:
+  - Inference time: <2 seconds per image
+  - Batch processing: <5 seconds for 10 images
+- **Resource Usage**:
+  - Peak memory: <2GB
+  - GPU utilization: Optimized for mobile/web deployment
 
-### Secondary Labels
-- Patient Demographics
-- Treatment History
-- Previous Diagnoses
-- Environmental Factors
+## 5. Data Storage and Management
 
-## 6. Data Quality Criteria
+### 5.1 Storage Requirements
+- **Image Data**:
+  - Raw images: Google Cloud Storage
+  - Processed features: MongoDB
+  - Metadata: MySQL
+- **Model Data**:
+  - Weights: TensorFlow SavedModel format
+  - Checkpoints: Google Cloud Storage
+  - Performance logs: MongoDB
 
-### Image Quality
-- Clear Focus
-- Proper Lighting
-- Minimal Background Distraction
-- Standard Distance
-- Multiple Angles (when possible)
+### 5.2 Data Security
+- **Encryption**:
+  - At-rest: AES-256
+  - In-transit: TLS 1.3
+- **Access Control**:
+  - Role-based access
+  - Audit logging
+  - HIPAA compliance
 
-### Metadata Quality
-- Complete Patient History
-- Accurate Diagnosis
-- Treatment Outcomes
-- Follow-up Results
+## 6. Data Collection Guidelines
 
-## 7. Ethical Considerations
+### 6.1 Image Capture Protocol
+- Well-lit environment
+- Standard distance (20-30cm)
+- Multiple angles when possible
+- Clear focus on affected area
+- Neutral background
+- Color reference card inclusion
 
-### Privacy Requirements
-- De-identified Patient Data
-- Consent Documentation
-- Age-appropriate Consent
-- Data Usage Agreements
+### 6.2 Clinical Data Collection
+- Patient demographics
+- Medical history
+- Previous treatments
+- Trigger factors
+- Symptoms timeline
+- Treatment outcomes
 
-### Bias Prevention
-- Diverse Ethnic Representation
-- Age Group Distribution
-- Gender Balance
-- Geographic Diversity
+### 6.3 Quality Control
+- Image quality assessment
+- Metadata completeness check
+- Expert validation
+- Regular dataset audits
+- Bias detection and mitigation
 
-## 8. Data Storage and Management
+## 7. Continuous Improvement
 
-### Storage Format
-- Images: Compressed JPEG/PNG
-- Metadata: JSON/CSV
-- Annotations: XML/JSON
+### 7.1 Model Retraining
+- Frequency: Monthly
+- Minimum new data: 1000 samples
+- Performance validation
+- A/B testing protocol
 
-### Version Control
-- Dataset Versioning
-- Change Documentation
-- Update Logs
-- Quality Assurance Reports
+### 7.2 Data Pipeline Updates
+- Regular feature engineering review
+- Dataset balance monitoring
+- Data drift detection
+- Performance metric tracking
+- Error analysis and correction
 
-## 9. Performance Metrics
+## 8. Differential Diagnosis Features
 
-### Required Metrics
-- Accuracy: >90%
-- Sensitivity: >85%
-- Specificity: >85%
-- F1 Score: >0.85
-- ROC-AUC: >0.90
+### 8.1 Key Distinguishing Characteristics
+- **Eczema-Specific Patterns**:
+  - Symmetrical distribution
+  - Flexural areas involvement
+  - Lichenification in chronic cases
+  - Ill-defined borders
+  - Dry, scaly patches
+  - Erythema patterns
 
-### Validation Process
-1. Cross-validation (5-fold)
-2. External Validation
-3. Clinical Trial Validation
-4. Continuous Monitoring
+### 8.2 Similar Conditions Dataset
+- **Psoriasis**:
+  - Training samples: 2000 images
+  - Key differences: Well-defined borders, silvery scales, thicker plaques
+  - Feature focus: Scale texture, plaque thickness
 
-## 10. Data Update Strategy
+- **Contact Dermatitis**:
+  - Training samples: 2000 images
+  - Key differences: Clear exposure pattern, acute onset
+  - Feature focus: Distribution pattern, temporal evolution
 
-### Regular Updates
-- Quarterly Data Reviews
-- New Case Additions
-- Error Correction
-- Performance Optimization
+- **Seborrheic Dermatitis**:
+  - Training samples: 1500 images
+  - Key differences: Greasy scales, specific distribution
+  - Feature focus: Scale appearance, affected areas
 
-### Quality Control
-- Regular Audits
-- Expert Review
-- Performance Monitoring
-- Feedback Integration
+- **Fungal Infections**:
+  - Training samples: 1500 images
+  - Key differences: Circular pattern, advancing edges
+  - Feature focus: Shape analysis, border characteristics
+
+### 8.3 Differential Features Analysis
+- **Texture Analysis**:
+  - Scale patterns
+  - Surface texture
+  - Skin thickness
+  - Color variation patterns
+
+- **Distribution Patterns**:
+  - Body location mapping
+  - Symmetry analysis
+  - Border characteristics
+  - Spread patterns
+
+- **Clinical Context**:
+  - Age-related patterns
+  - Personal/family history
+  - Associated conditions
+  - Seasonal variations
+
+### 8.4 Multi-Class Classification
+- **Primary Classification**:
+  - Eczema vs. Non-eczema: Binary classification
+  - Confidence threshold: >90%
+
+- **Secondary Classification**:
+  - Multi-class differentiation between:
+    1. Atopic Dermatitis (Eczema)
+    2. Psoriasis
+    3. Contact Dermatitis
+    4. Seborrheic Dermatitis
+    5. Fungal Infections
+    6. Other Conditions
+
+- **Hierarchical Classification**:
+  1. First level: Inflammatory vs. Non-inflammatory
+  2. Second level: Acute vs. Chronic
+  3. Third level: Specific condition
+
+### 8.5 Feature Importance Metrics
+- **Key Discriminative Features**:
+  1. Morphological patterns
+  2. Color distribution
+  3. Texture characteristics
+  4. Location patterns
+  5. Border definitions
+
+- **Validation Metrics**:
+  - Per-class accuracy >85%
+  - Confusion matrix analysis
+  - ROC curves for each condition
+  - Feature importance ranking
+
+### 8.6 Misclassification Prevention
+- **High-Risk Pairs**:
+  1. Eczema vs. Psoriasis
+  2. Eczema vs. Contact Dermatitis
+  3. Eczema vs. Seborrheic Dermatitis
+
+- **Risk Mitigation**:
+  - Additional verification for borderline cases
+  - Multiple angle analysis
+  - Temporal progression tracking
+  - Clinical history correlation
+
+### 8.7 Continuous Learning
+- **Dataset Evolution**:
+  - Regular updates with new conditions
+  - Refinement of distinguishing features
+  - Integration of clinical feedback
+  - Error analysis and correction
+
+- **Model Adaptation**:
+  - Dynamic feature importance updating
+  - Periodic retraining with new examples
+  - Performance monitoring per condition
+  - Expert validation of difficult cases
